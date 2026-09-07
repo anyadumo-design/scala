@@ -1,0 +1,162 @@
+/* Адмінка теми SCALA */
+
+.scala-settings__intro {
+  max-width: 70ch;
+  color: #50575e;
+  font-size: 13.5px;
+}
+
+.scala-settings__tabs {
+  margin-bottom: 24px;
+}
+
+.scala-settings__body,
+.scala-metabox {
+  max-width: 860px;
+}
+
+/* --- Поле --------------------------------------------------------------- */
+.scala-field {
+  margin: 0 0 20px;
+}
+
+.scala-field__label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.scala-field__help {
+  margin: 6px 0 0;
+  color: #646970;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-width: 68ch;
+}
+
+.scala-field__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.scala-field textarea {
+  line-height: 1.55;
+}
+
+/* --- Зображення --------------------------------------------------------- */
+.scala-image {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.scala-image__preview {
+  width: 92px;
+  height: 92px;
+  flex: none;
+  border: 1px solid #dcdcde;
+  border-radius: 3px;
+  background: #f6f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.scala-image__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scala-image__empty {
+  font-size: 11px;
+  color: #8c8f94;
+  text-align: center;
+  padding: 6px;
+  line-height: 1.3;
+}
+
+.scala-image__clear {
+  color: #b32d2e;
+}
+
+/* --- Повторюваний блок -------------------------------------------------- */
+.scala-rep__rows {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.scala-rep__row {
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.scala-rep__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f6f7f7;
+  border-bottom: 1px solid #dcdcde;
+  border-radius: 4px 4px 0 0;
+}
+
+.scala-rep__title {
+  font-weight: 600;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #50575e;
+}
+
+.scala-rep__num {
+  color: #8c8f94;
+}
+
+.scala-rep__tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.scala-rep__tools .button-link {
+  font-size: 15px;
+  line-height: 1;
+  text-decoration: none;
+  color: #50575e;
+}
+
+.scala-rep__tools .button-link:hover {
+  color: #135e96;
+}
+
+.scala-rep__del:hover {
+  color: #b32d2e;
+}
+
+.scala-rep__body {
+  padding: 16px 14px 4px;
+}
+
+.scala-rep__body .scala-field:last-child {
+  margin-bottom: 16px;
+}
+
+/* --- Заявка ------------------------------------------------------------- */
+.scala-lead th {
+  text-align: left;
+  font-weight: 600;
+}
+
+.scala-lead td {
+  word-break: break-word;
+}
