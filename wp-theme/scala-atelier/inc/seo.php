@@ -274,3 +274,100 @@ function scala_json_ld(): void {
 	);
 }
 add_action( 'wp_head', 'scala_json_ld', 5 );
+
+/**
+ * Структуровані дані сторінки виду штор.
+ *
+ * Хлібні крихти дублюють видиму навігацію, а FAQ береться з тих самих
+ * полів запису, які людина бачить на сторінці. Розійтися вони не
+ * можуть за побудовою: джерело одне.
+ *
+ * Виводимо навіть за активного Yoast — він не знає ні про наші поля
+ * питань, ні про архів /vydy-shtor/ як окремий рівень навігації.
+ *
+ * @return void
+ */
+function scala_type_json_ld(): void {
+	if ( ! is_singular( 'scala_type' ) ) {
+		return;
+	}
+
+	$post_id = get_the_ID();
+
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$graph   = array();
+	$archive = get_post_type_archive_link( 'scala_type' );
+
+	$crumbs = array(
+		array(
+			'@type'    => 'ListItem',
+			'position' => 1,
+			'name'     => __( 'Головна', 'scala' ),
+			'item'     => home_url( '/' ),
+		),
+	);
+
+	if ( $archive ) {
+		$crumbs[] = array(
+			'@type'    => 'ListItem',
+			'position' => 2,
+			'name'     => __( 'Види штор', 'scala' ),
+			'item'     => $archive,
+		);
+	}
+
+	$crumbs[] = array(
+		'@type'    => 'ListItem',
+		'position' => count( $crumbs ) + 1,
+		'name'     => get_the_title( $post_id ),
+		'item'     => (string) get_permalink( $post_id ),
+	);
+
+	$graph[] = array(
+		'@type'           => 'BreadcrumbList',
+		'itemListElement' => $crumbs,
+	);
+
+	$faq_items = array();
+
+	foreach ( scala_meta_rows( (int) $post_id, 'faq' ) as $row ) {
+		$question = trim( wp_strip_all_tags( (string) ( $row['q'] ?? '' ) ) );
+		$answer   = trim( wp_strip_all_tags( (string) ( $row['a'] ?? '' ) ) );
+
+		if ( ! $question || ! $answer ) {
+			continue;
+		}
+
+		$faq_items[] = array(
+			'@type'          => 'Question',
+			'name'           => $question,
+			'acceptedAnswer' => array(
+				'@type' => 'Answer',
+				'text'  => $answer,
+			),
+		);
+	}
+
+	if ( $faq_items ) {
+		$graph[] = array(
+			'@type'      => 'FAQPage',
+			'@id'        => get_permalink( $post_id ) . '#faq',
+			'mainEntity' => $faq_items,
+		);
+	}
+
+	printf(
+		'<script type="application/ld+json">%s</script>' . "\n",
+		wp_json_encode(
+			array(
+				'@context' => 'https://schema.org',
+				'@graph'   => $graph,
+			),
+			JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+		)
+	);
+}
+add_action( 'wp_head', 'scala_type_json_ld', 6 );

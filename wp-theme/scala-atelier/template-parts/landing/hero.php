@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 $scala_room    = (int) scala_opt( 'room_image', 0 );
 $scala_curtain = scala_image_url( (int) scala_opt( 'curtain_image', 0 ), 'scala-lg' );
 ?>
-<section id="top" class="hero" data-cursor="OPEN">
+<section id="top" class="hero">
 	<div class="hero__stage">
 
 		<div class="hero__room">

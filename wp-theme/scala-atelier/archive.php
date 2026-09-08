@@ -39,8 +39,17 @@ get_header();
 				<div class="cat-card__row">
 					<span class="cat-card__name"><?php the_title(); ?></span>
 				</div>
-				<?php if ( has_excerpt() ) : ?>
-					<div class="cat-card__text"><?php echo esc_html( get_the_excerpt() ); ?></div>
+				<?php
+				// На картці показуємо короткий опис, а не excerpt: там лежить
+				// текст для сніпета пошуку, довший за розмір картки.
+				$scala_card_text = (string) scala_meta( get_the_ID(), 'short', '' );
+
+				if ( ! $scala_card_text && has_excerpt() ) {
+					$scala_card_text = (string) get_the_excerpt();
+				}
+				?>
+				<?php if ( $scala_card_text ) : ?>
+					<div class="cat-card__text"><?php echo esc_html( $scala_card_text ); ?></div>
 				<?php endif; ?>
 			</a>
 			<?php

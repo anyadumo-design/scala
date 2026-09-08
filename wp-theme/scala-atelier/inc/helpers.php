@@ -387,3 +387,70 @@ function scala_nav( string $location ): void {
 		);
 	}
 }
+
+/**
+ * Розбиває готовий HTML сторінки на блоки по заголовках H2.
+ *
+ * Клієнт пише текст у звичайному редакторі WordPress — з H2, абзацами
+ * й списками. Дизайн натомість вимагає, щоб кожен розділ був окремим
+ * двоколонковим блоком: заголовок ліворуч, текст праворуч. Замість
+ * того щоб змушувати редагувати десяток вузьких полів, ми беремо
+ * звичайний вміст і ріжемо його самі.
+ *
+ * Текст до першого H2 повертається як блок без заголовка.
+ *
+ * @param string $html Вміст після the_content-фільтрів.
+ * @return array Список масивів array( 'heading' => string, 'body' => string ).
+ */
+function scala_split_sections( string $html ): array {
+	$parts = preg_split(
+		'~<h2\b[^>]*>(.*?)</h2>~is',
+		$html,
+		-1,
+		PREG_SPLIT_DELIM_CAPTURE
+	);
+
+	if ( ! is_array( $parts ) || ! $parts ) {
+		return array();
+	}
+
+	$sections = array();
+	$intro    = array_shift( $parts );
+
+	if ( trim( wp_strip_all_tags( (string) $intro ) ) ) {
+		$sections[] = array(
+			'heading' => '',
+			'body'    => (string) $intro,
+		);
+	}
+
+	// Далі елементи йдуть парами: заголовок, тіло.
+	for ( $i = 0; $i < count( $parts ); $i += 2 ) {
+		$heading = wp_strip_all_tags( (string) ( $parts[ $i ] ?? '' ) );
+		$body    = (string) ( $parts[ $i + 1 ] ?? '' );
+
+		if ( '' === trim( $heading ) && ! trim( wp_strip_all_tags( $body ) ) ) {
+			continue;
+		}
+
+		$sections[] = array(
+			'heading' => $heading,
+			'body'    => $body,
+		);
+	}
+
+	return $sections;
+}
+
+/**
+ * Рядки повторюваного поля запису (метабокс), а не налаштувань.
+ *
+ * @param int    $post_id ID запису.
+ * @param string $key     Ключ поля.
+ * @return array
+ */
+function scala_meta_rows( int $post_id, string $key ): array {
+	$rows = scala_meta( $post_id, $key, array() );
+
+	return is_array( $rows ) ? array_values( array_filter( $rows, 'is_array' ) ) : array();
+}

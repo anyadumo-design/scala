@@ -401,16 +401,25 @@ function scala_seed_options( array $img ): void {
  * @return int
  */
 function scala_seed_post( string $post_type, string $title, array $args = array() ): int {
-	$post_id = wp_insert_post(
-		array(
-			'post_type'    => $post_type,
-			'post_status'  => 'publish',
-			'post_title'   => $title,
-			'post_content' => $args['content'] ?? '',
-			'post_excerpt' => $args['excerpt'] ?? '',
-			'menu_order'   => $args['order'] ?? 0,
-		)
+	$post = array(
+		'post_type'    => $post_type,
+		'post_status'  => 'publish',
+		'post_title'   => $title,
+		'post_content' => $args['content'] ?? '',
+		'post_excerpt' => $args['excerpt'] ?? '',
+		'menu_order'   => $args['order'] ?? 0,
 	);
+
+	/*
+	 * Латинський слаг задаємо самі. Автоматичний робиться з української
+	 * назви й перетворюється на %d1%82%d1%8e... — така адреса нечитабельна
+	 * і в пошуку, і в аналітиці.
+	 */
+	if ( ! empty( $args['slug'] ) ) {
+		$post['post_name'] = sanitize_title( (string) $args['slug'] );
+	}
+
+	$post_id = wp_insert_post( $post );
 
 	if ( is_wp_error( $post_id ) || ! $post_id ) {
 		return 0;
@@ -434,52 +443,32 @@ function scala_seed_post( string $post_type, string $title, array $args = array(
  * @return void
  */
 function scala_seed_types( array $img ): void {
-	$items = array(
-		array( 'Тюль', 'type-tulle', 'Напівпрозорі полотна, що розсіюють світло й тримають приватність вдень.' ),
-		array( 'Класичні штори', 'type-classic', 'Портьєри з драпіровкою на стрічці, люверсах або прихованому карнизі.' ),
-		array( 'Римські штори', 'type-roman', 'Рівні складки, компактна конструкція — для кухні, кабінету, еркера.' ),
-		array( 'Дерев’яні жалюзі', 'type-wood-blinds', 'Ламелі з натурального дерева: тепла фактура й точне регулювання світла.' ),
-		array( 'Рулонні системи', 'type-roller', 'Касетні механізми на стулку — не займають підвіконня, зручні у догляді.' ),
-	);
-
 	$order = 0;
 
-	foreach ( $items as $item ) {
-		list( $title, $slug, $short ) = $item;
+	foreach ( scala_type_seed_data() as $item ) {
+		$fabrics = array();
+
+		foreach ( (array) ( $item['fabrics'] ?? array() ) as $name ) {
+			$fabrics[] = array( 'name' => $name );
+		}
 
 		scala_seed_post(
 			'scala_type',
-			$title,
+			$item['title'],
 			array(
 				'order'   => $order++,
-				'excerpt' => $short,
-				'thumb'   => $img[ $slug ] ?? 0,
+				'slug'    => $item['slug'],
+				'excerpt' => $item['excerpt'],
+				'content' => $item['content'],
+				'thumb'   => $img[ $item['image'] ] ?? 0,
 				'meta'    => array(
-					'short'      => $short,
-					'tag'        => 'Прорахунок →',
+					'short'      => $item['short'],
+					'lead'       => $item['lead'],
+					'tag'        => 'Докладно →',
 					'in_catalog' => 1,
-					'on_home'    => 1,
-				),
-			)
-		);
-	}
-
-	// Види, які є в каталозі, але фото ще немає.
-	foreach ( array(
-		array( 'Австрійські штори', 'Мʼякі фестони, класична розкіш для вітальні та спальні.' ),
-		array( 'Японські панелі', 'Рівні полотна на треку: зонування простору й мінімалізм.' ),
-	) as $item ) {
-		scala_seed_post(
-			'scala_type',
-			$item[0],
-			array(
-				'order'   => $order++,
-				'excerpt' => $item[1],
-				'meta'    => array(
-					'short'      => $item[1],
-					'tag'        => 'Прорахунок →',
-					'in_catalog' => 1,
-					'on_home'    => 0,
+					'on_home'    => (int) $item['on_home'],
+					'fabrics'    => $fabrics,
+					'faq'        => (array) ( $item['faq'] ?? array() ),
 				),
 			)
 		);

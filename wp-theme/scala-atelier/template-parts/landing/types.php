@@ -33,9 +33,9 @@ if ( ! $scala_types ) {
 			<?php
 			$scala_url   = get_permalink( $scala_type );
 			$scala_short = (string) scala_meta( $scala_type->ID, 'short', (string) $scala_type->post_excerpt );
-			$scala_tag   = (string) scala_meta( $scala_type->ID, 'tag', __( 'Прорахунок →', 'scala' ) );
+			$scala_tag   = (string) scala_meta( $scala_type->ID, 'tag', __( 'Докладно →', 'scala' ) );
 			?>
-			<a href="<?php echo esc_url( $scala_url ?: '#request' ); ?>" class="type-card" data-cursor="REQUEST">
+			<a href="<?php echo esc_url( $scala_url ?: '#request' ); ?>" class="type-card" data-cursor="ДЕТАЛІ">
 				<div class="type-card__frame">
 					<div class="type-card__zoom">
 						<?php

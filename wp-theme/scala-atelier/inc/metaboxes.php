@@ -44,6 +44,47 @@ function scala_meta_schema(): array {
 					'label'   => __( 'Показувати на головній', 'scala' ),
 					'default' => 1,
 				),
+				array(
+					'key'   => 'lead',
+					'type'  => 'textarea',
+					'rows'  => 4,
+					'label' => __( 'Вступ сторінки', 'scala' ),
+					'help'  => __( 'Абзац під заголовком H1. Основний текст сторінки редагується у звичайному редакторі нижче: заголовки H2 самі розбивають його на блоки.', 'scala' ),
+				),
+				array(
+					'key'       => 'fabrics',
+					'type'      => 'repeater',
+					'label'     => __( 'Тканини, які везуть на замір', 'scala' ),
+					'row_label' => __( 'Тканина', 'scala' ),
+					'help'      => __( 'Назви беремо з каталогу — інакше на сторінці зʼявиться позиція, якої немає в наявності.', 'scala' ),
+					'fields'    => array(
+						array(
+							'key'   => 'name',
+							'type'  => 'text',
+							'label' => __( 'Назва', 'scala' ),
+						),
+					),
+				),
+				array(
+					'key'       => 'faq',
+					'type'      => 'repeater',
+					'label'     => __( 'Часті питання', 'scala' ),
+					'row_label' => __( 'Питання', 'scala' ),
+					'help'      => __( 'Ці ж питання йдуть у розмітку FAQ для Google — слово в слово з тим, що бачить людина.', 'scala' ),
+					'fields'    => array(
+						array(
+							'key'   => 'q',
+							'type'  => 'text',
+							'label' => __( 'Питання', 'scala' ),
+						),
+						array(
+							'key'   => 'a',
+							'type'  => 'textarea',
+							'rows'  => 4,
+							'label' => __( 'Відповідь', 'scala' ),
+						),
+					),
+				),
 			),
 		),
 
