@@ -32,6 +32,7 @@ scala-site/
 │   ├── js/main.js        інтерактив без залежностей
 │   └── img/              фото у WebP, по дві роздільності
 ├── tools/
+│   ├── add-photo.py      готує фото з _source-photos/ у WebP
 │   ├── build-reviews.py  збирає плитки скріншотів із _source-reviews/
 │   └── sync-theme.py     переносить CSS і JS у тему
 └── wp-theme/
@@ -60,6 +61,14 @@ python3 tools/build-reviews.py
 
 Робить із кожного скріна мініатюру й повний кадр у WebP і перезбирає
 плитки в `index.html`. Вихідні файли в репозиторій не йдуть.
+
+```bash
+# нове фото для сайту
+python3 tools/add-photo.py request-photo
+```
+
+Кладе в `_source-photos/` фото, а скрипт робить із нього два WebP —
+повний і `@0.5x` для srcset, — копіює в тему й друкує готовий тег `<img>`.
 
 ## Тема WordPress
 

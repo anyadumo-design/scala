@@ -751,12 +751,25 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
    17. 09 Заявка
    -------------------------------------------------------------------------- */
 .request__box {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  display: grid;
+  /*
+   * Не половина на половину: у колонці 687px форма шириною 470px
+   * лишала 217px порожнечі праворуч від кожного поля — блок читався
+   * як недоверстаний. Ліва колонка тепер по формі, решта — фото.
+   *
+   * align-items: stretch перебиває start з .two-col. Без цього фото
+   * лишалося заввишки 520px (own min-height) у рядку 838px, і під ним
+   * висіла сіра смуга на третину блоку.
+   */
+  grid-template-columns: minmax(0, 600px) minmax(0, 1fr);
+  align-items: stretch;
   gap: 0; border: 1px solid var(--c-line);
 }
 .request__pane { padding: clamp(28px, 4vw, 60px); }
 .request__h2 {
-  font-size: clamp(28px, 3.6vw, 50px); line-height: 1.04; letter-spacing: -.04em;
+  /* Трохи менший за інші H2: колонка тут вужча за секцію, і на 50px
+     «Отримати індивідуальний прорахунок» розсипалось на три рядки. */
+  font-size: clamp(26px, 2.9vw, 42px); line-height: 1.06; letter-spacing: -.035em;
   font-weight: 600; margin: 22px 0 0; text-wrap: balance;
 }
 .request__text {
@@ -766,7 +779,7 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   font-size: 14.5px; line-height: 1.6; color: var(--c-ink);
   margin: 14px 0 0; max-width: 470px; font-weight: 500;
 }
-.request__photo { min-height: 520px; background: var(--c-ph-photo); overflow: hidden; }
+.request__photo { min-height: 520px; height: 100%; background: var(--c-ph-photo); overflow: hidden; }
 
 .form { display: grid; gap: 10px; margin-top: 30px; max-width: 470px; }
 .form input,
