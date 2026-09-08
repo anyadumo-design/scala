@@ -11,6 +11,13 @@ $scala_is_home = is_front_page();
 $scala_phone   = (string) scala_opt( 'phone', '' );
 $scala_email   = (string) scala_opt( 'email', '' );
 
+/*
+ * Види штор у підвалі — наскрізна перелінковка: з будь-якої сторінки
+ * видно всі комерційні сторінки, і вони не залежать від того, чи
+ * дійшов відвідувач до каталогу.
+ */
+$scala_types = scala_posts( 'scala_type' );
+
 $scala_socials = array_filter(
 	array(
 		'Instagram' => (string) scala_opt( 'instagram', '' ),
@@ -51,6 +58,19 @@ $scala_socials = array_filter(
 				<?php endforeach; ?>
 			</div>
 		</div>
+
+		<?php if ( $scala_types ) : ?>
+			<div>
+				<div class="footer__label"><?php esc_html_e( 'Види штор', 'scala' ); ?></div>
+				<div class="footer__links">
+					<?php foreach ( $scala_types as $scala_type ) : ?>
+						<a href="<?php echo esc_url( (string) get_permalink( $scala_type ) ); ?>">
+							<?php echo esc_html( get_the_title( $scala_type ) ); ?>
+						</a>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		<?php endif; ?>
 
 		<div>
 			<div class="footer__label">
@@ -126,19 +146,29 @@ $scala_socials = array_filter(
 		<?php endif; ?>
 	</div>
 
-	<?php if ( $scala_is_home ) : ?>
-		<div class="footer__spacer"></div>
-	<?php endif; ?>
+	<div class="footer__spacer"></div>
 </footer>
 
-<?php if ( $scala_is_home ) : ?>
-	<div class="mobile-bar">
-		<a href="#request" class="mobile-bar__cta" data-lead-open="<?php esc_attr_e( 'Липка панель (моб.)', 'scala' ); ?>"><?php esc_html_e( 'Запросити дизайнера', 'scala' ); ?></a>
-		<?php if ( $scala_phone ) : ?>
-			<a href="tel:<?php echo esc_attr( scala_tel( $scala_phone ) ); ?>" class="mobile-bar__call" aria-label="<?php esc_attr_e( 'Подзвонити', 'scala' ); ?>">☎</a>
-		<?php endif; ?>
-	</div>
-<?php endif; ?>
+<?php
+/*
+ * Липка панель на телефоні — на всіх сторінках, не лише на головній.
+ * Доки її не було на підсторінках, там лишалась кнопка в шапці й
+ * тиснулась упритул до бургера. Тепер головна дія скрізь однакова
+ * і завжди під великим пальцем.
+ */
+$scala_bar_href = $scala_is_home
+	? '#request'
+	: ( scala_page_url( 'contacts' ) ?: home_url( '/' ) );
+?>
+<div class="mobile-bar">
+	<a href="<?php echo esc_url( $scala_bar_href ); ?>" class="mobile-bar__cta"
+	   data-lead-open="<?php echo esc_attr( __( 'Липка панель (моб.) · ', 'scala' ) . wp_get_document_title() ); ?>">
+		<?php esc_html_e( 'Запросити дизайнера', 'scala' ); ?>
+	</a>
+	<?php if ( $scala_phone ) : ?>
+		<a href="tel:<?php echo esc_attr( scala_tel( $scala_phone ) ); ?>" class="mobile-bar__call" aria-label="<?php esc_attr_e( 'Подзвонити', 'scala' ); ?>">&#9742;</a>
+	<?php endif; ?>
+</div>
 
 <?php get_template_part( 'template-parts/lead-modal' ); ?>
 

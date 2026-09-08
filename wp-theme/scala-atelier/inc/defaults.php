@@ -462,6 +462,7 @@ function scala_seed_types( array $img ): void {
 				'content' => $item['content'],
 				'thumb'   => $img[ $item['image'] ] ?? 0,
 				'meta'    => array(
+					'h1'         => $item['h1'],
 					'short'      => $item['short'],
 					'lead'       => $item['lead'],
 					'tag'        => 'Докладно →',

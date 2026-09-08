@@ -823,6 +823,10 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--c-meta);
 }
 .footer__contacts { font-size: 14px; line-height: 1.8; margin-top: 12px; }
+/* Номер не можна рвати посеред цифр, а пошту — навпаки, лише й можна:
+   це один довгий «токен», який інакше вилазить із колонки на сусідню. */
+.footer__contacts a[href^="tel:"]    { white-space: nowrap; }
+.footer__contacts a[href^="mailto:"] { overflow-wrap: anywhere; }
 .footer__links {
   display: flex; flex-direction: column; gap: 8px; font-size: 14px; margin-top: 12px;
 }
@@ -1089,11 +1093,12 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 @media (max-width: 760px) {
   :root { --pad-x: 18px; }
 
+  /* Кнопка з шапки на телефоні ховається скрізь: її роль бере на себе
+     липка панель знизу. Раніше на підсторінках вона лишалась і тиснулась
+     упритул до бургера — широка чорна пігулка поруч з іконкою меню. */
   .hdr__cta { display: none !important; }
   .hdr__inner { padding: 14px var(--pad-x); gap: 14px; }
   .hdr--sticky .hdr__inner { padding: 14px var(--pad-x); gap: 14px; }
-  /* На підсторінках CTA лишається — там немає липкої панелі знизу */
-  .hdr--sticky .hdr__cta { display: inline-block !important; margin-left: auto; }
 
   .section, .section--m88, .section--m96, .section--sub, .section--m44 {
     margin-top: 64px; padding-top: 0;
@@ -1148,7 +1153,19 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   .mobile-bar { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
   .mobile-bar__cta { padding: 17px 14px; font-size: 12.5px; }
 
-  .footer__grid { gap: 22px; }
+  /* Підвал на телефоні.
+     Автоколонки тут не рятують: пʼять груп в один стовпчик — це екран
+     самих лише посилань, а чотири фіксовані колонки на 375px дають
+     по 68px, і пошта лізе на сусідню. Тому бренд займає весь рядок,
+     а групи посилань стоять парами. */
+  .footer__grid { grid-template-columns: 1fr 1fr; gap: 26px 18px; }
+  .footer__grid > :first-child { grid-column: 1 / -1; }
+  .footer__brand-text { max-width: none; }
+  .footer__label { font-size: 11.5px; letter-spacing: .14em; }
+  .footer__contacts,
+  .footer__links { font-size: 14.5px; }
+  .footer__contacts { line-height: 1.7; }
+  .footer__links { gap: 10px; }
   .works { gap: 8px; }
 
   .cat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -1156,6 +1173,12 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 
 @media (max-width: 620px) {
   .about__gallery { grid-template-columns: 1fr; }
+}
+
+/* На дуже вузьких екранах дві колонки лишають під пошту ~130px,
+   і адреса рветься посеред слова. Тоді краще один стовпчик. */
+@media (max-width: 359px) {
+  .footer__grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 420px) {
@@ -1212,6 +1235,8 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 
 .tp__blocks { display: grid; gap: clamp(44px, 5.6vw, 76px); }
 
+.tp__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+
 .tp__fabrics { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
 .tp__fab {
   border: 1px solid var(--c-line-input); border-radius: var(--radius-pill);
@@ -1235,4 +1260,8 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 @media (max-width: 760px) {
   .tp__hero { aspect-ratio: 4 / 3; }
   .tp__more { grid-template-columns: 1fr; }
+  /* «Запросити дизайнера зі зразками» не переноситься (nowrap у .btn),
+     тож на вузькому екрані кнопки стають у стовпчик — як у hero. */
+  .tp__cta { flex-direction: column; align-items: stretch; }
+  .tp__cta a { width: 100%; text-align: center; padding: 18px 20px; }
 }

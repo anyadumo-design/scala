@@ -20,6 +20,7 @@ while ( have_posts() ) :
 
 	$scala_id       = get_the_ID();
 	$scala_name     = get_the_title();
+	$scala_h1       = (string) scala_meta( $scala_id, 'h1', '' ) ?: $scala_name;
 	$scala_lead     = (string) scala_meta( $scala_id, 'lead', '' );
 	$scala_fabrics  = scala_meta_rows( $scala_id, 'fabrics' );
 	$scala_faq      = scala_meta_rows( $scala_id, 'faq' );
@@ -42,13 +43,13 @@ while ( have_posts() ) :
 			<span aria-current="page"><?php echo esc_html( $scala_name ); ?></span>
 		</nav>
 
-		<h1 class="h1-page balance" style="max-width:1000px"><?php the_title(); ?></h1>
+		<h1 class="h1-page balance" style="max-width:1000px"><?php echo esc_html( $scala_h1 ); ?></h1>
 
 		<?php if ( $scala_lead ) : ?>
 			<p class="tp__lead pretty"><?php echo wp_kses( $scala_lead, scala_inline_tags() ); ?></p>
 		<?php endif; ?>
 
-		<div style="margin-top:30px;display:flex;gap:12px;flex-wrap:wrap">
+		<div class="tp__cta">
 			<a href="<?php echo esc_url( $scala_contacts ); ?>" class="btn btn--dark"
 			   data-lead-open="<?php echo esc_attr( $scala_name . __( ' · верх сторінки', 'scala' ) ); ?>">
 				<?php esc_html_e( 'Запросити дизайнера зі зразками', 'scala' ); ?>
