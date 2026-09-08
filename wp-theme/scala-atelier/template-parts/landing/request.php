@@ -30,9 +30,9 @@ defined( 'ABSPATH' ) || exit;
 				(int) scala_opt( 'photo', 0 ),
 				array(
 					'size'        => 'scala-md',
-					'sizes'       => '(max-width:760px) 100vw, 50vw',
+					'sizes'       => '(max-width:760px) 100vw, 56vw',
 					'class'       => 'parallax',
-					'alt'         => __( 'Штори Scala', 'scala' ),
+					'alt'         => __( 'Спальня з портьєрами в підлогу й тюлем на панорамному вікні', 'scala' ),
 					'placeholder' => __( 'Фото біля форми', 'scala' ),
 				)
 			);

@@ -281,6 +281,7 @@ function scala_image_alt_for( string $name ): string {
 		'fabric-velvet-luxe'    => 'Тканина Velvet Luxe, оксамит',
 		'fabric-light-air'      => 'Тканина Light Air, напівпрозоре полотно',
 		'fabric-urban-gold'     => 'Тканина Urban Gold із золотистим відблиском',
+		'request-photo'         => 'Спальня з портьєрами в підлогу й тюлем на панорамному вікні',
 		'work-01'               => 'Виконана робота Scala',
 		'work-02'               => 'Виконана робота Scala',
 	);
@@ -326,7 +327,7 @@ function scala_seed_options( array $img ): void {
 
 	$values['room_image']    = $img['hero-room'] ?? 0;
 	$values['curtain_image'] = $img['hero-curtain'] ?? 0;
-	$values['photo']         = $img['fabric-urban-gold'] ?? 0;
+	$values['photo']         = $img['request-photo'] ?? 0;
 	$values['about_image']   = $img['project-living'] ?? 0;
 
 	$values['benefits'] = array(
