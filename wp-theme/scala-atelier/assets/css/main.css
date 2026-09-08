@@ -660,7 +660,6 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   aspect-ratio: 3/4; background: var(--c-ph-photo); overflow: hidden;
   border: 1px solid var(--c-line);
 }
-.shots__note { font-size: 12.5px; color: var(--c-meta); margin-top: 10px; line-height: 1.5; }
 .trust__label { font-size: 11.5px; letter-spacing: .24em; text-transform: uppercase; color: var(--c-meta); }
 .trust__label--gap { margin-top: 34px; }
 
@@ -814,7 +813,7 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 .footer--sub { margin: 80px auto 0; padding: 0 var(--pad-x) 48px; }
 .footer__grid {
   border-top: 1px solid var(--c-line); padding-top: 32px;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px 24px;
 }
 .footer__brand-text {
   font-size: 14px; color: var(--c-body); line-height: 1.6; margin-top: 12px; max-width: 260px;
@@ -823,6 +822,10 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--c-meta);
 }
 .footer__contacts { font-size: 14px; line-height: 1.8; margin-top: 12px; }
+/* Номер не можна рвати посеред цифр, а пошту — навпаки, лише й можна:
+   це один довгий «токен», який інакше вилазить із колонки на сусідню. */
+.footer__contacts a[href^="tel:"]    { white-space: nowrap; }
+.footer__contacts a[href^="mailto:"] { overflow-wrap: anywhere; }
 .footer__links {
   display: flex; flex-direction: column; gap: 8px; font-size: 14px; margin-top: 12px;
 }
@@ -1077,7 +1080,10 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 }
 
 @media (max-width: 1100px) {
-  .two-col   { grid-template-columns: 1fr; }
+  /* minmax(0, 1fr), а не 1fr: інакше колонка розтягується під
+     найширший вміст. Стрічка скріншотів усередині розсувала грид
+     до 718px на екрані 375px і давала горизонтальний скрол сторінки. */
+  .two-col   { grid-template-columns: minmax(0, 1fr); }
   .four-col  { grid-template-columns: repeat(2, 1fr); }
   .hero__slogan { font-size: min(12vw, 9.4vh); }
   .ig-grid   { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1089,11 +1095,12 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 @media (max-width: 760px) {
   :root { --pad-x: 18px; }
 
+  /* Кнопка з шапки на телефоні ховається скрізь: її роль бере на себе
+     липка панель знизу. Раніше на підсторінках вона лишалась і тиснулась
+     упритул до бургера — широка чорна пігулка поруч з іконкою меню. */
   .hdr__cta { display: none !important; }
   .hdr__inner { padding: 14px var(--pad-x); gap: 14px; }
   .hdr--sticky .hdr__inner { padding: 14px var(--pad-x); gap: 14px; }
-  /* На підсторінках CTA лишається — там немає липкої панелі знизу */
-  .hdr--sticky .hdr__cta { display: inline-block !important; margin-left: auto; }
 
   .section, .section--m88, .section--m96, .section--sub, .section--m44 {
     margin-top: 64px; padding-top: 0;
@@ -1148,14 +1155,44 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   .mobile-bar { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
   .mobile-bar__cta { padding: 17px 14px; font-size: 12.5px; }
 
-  .footer__grid { gap: 22px; }
+  /* Підвал на телефоні.
+     Автоколонки тут не рятують: пʼять груп в один стовпчик — це екран
+     самих лише посилань, а чотири фіксовані колонки на 375px дають
+     по 68px, і пошта лізе на сусідню. Тому бренд займає весь рядок,
+     а групи посилань стоять парами. */
+  .footer__grid { grid-template-columns: 1fr 1fr; gap: 26px 18px; }
+  .footer__grid > :first-child { grid-column: 1 / -1; }
+  .footer__brand-text { max-width: none; }
+  .footer__label { font-size: 11.5px; letter-spacing: .14em; }
+  .footer__contacts,
+  .footer__links { font-size: 14.5px; }
+  .footer__contacts { line-height: 1.7; }
+  .footer__links { gap: 10px; }
   .works { gap: 8px; }
+
+  /* Скріншоти переписок на телефоні: три колонки давали 105px завширшки —
+     текст повідомлень у такому розмірі не читається, а весь сенс блоку
+     саме в тому, щоб його прочитали. Тому стрічка з гортанням убік. */
+  .shots {
+    display: flex; gap: 10px;
+    overflow-x: auto; overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .shots::-webkit-scrollbar { display: none; }
+  .shots .shots__item { flex: none; width: min(62vw, 260px); }
 
   .cat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 }
 
 @media (max-width: 620px) {
   .about__gallery { grid-template-columns: 1fr; }
+}
+
+/* На дуже вузьких екранах дві колонки лишають під пошту ~130px,
+   і адреса рветься посеред слова. Тоді краще один стовпчик. */
+@media (max-width: 359px) {
+  .footer__grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 420px) {
@@ -1189,3 +1226,145 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   .parallax { transform: scale(1.08) !important; }
 }
 
+
+/* --------------------------------------------------------------------------
+   24. Сторінка виду штор
+   -------------------------------------------------------------------------- */
+.crumbs {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+  font-size: 11.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--c-meta);
+}
+.crumbs a { color: inherit; transition: color .25s ease; }
+.crumbs a:hover { color: var(--c-accent); }
+.crumbs__sep { opacity: .5; }
+.crumbs [aria-current] { color: var(--c-ink); }
+
+.tp__lead {
+  max-width: 68ch; margin: 22px 0 0;
+  font-size: clamp(16px, 1.45vw, 19px); line-height: 1.65; color: var(--c-body);
+}
+.tp__hero { aspect-ratio: 16 / 7; overflow: hidden; background: var(--c-ph-photo); }
+.tp__hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.tp__blocks { display: grid; gap: clamp(44px, 5.6vw, 76px); }
+
+.tp__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+
+.tp__fabrics { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+.tp__fab {
+  border: 1px solid var(--c-line-input); border-radius: var(--radius-pill);
+  padding: 11px 19px; font-size: 13px; font-weight: 600; color: var(--c-ink);
+  transition: border-color .25s ease, color .25s ease;
+}
+.tp__fab:hover { border-color: var(--c-ink); color: var(--c-accent); }
+
+.tp__more { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 30px; }
+.tp__more a {
+  display: block; border: 1px solid var(--c-line); padding: 22px 20px;
+  font-size: 16px; font-weight: 600; letter-spacing: -.02em; color: var(--c-ink);
+  transition: border-color .25s ease, color .25s ease;
+}
+.tp__more a:hover { border-color: var(--c-ink); color: var(--c-accent); }
+.tp__more span { display: block; margin-top: 8px; font-size: 13px; font-weight: 400; color: var(--c-body); }
+
+@media (max-width: 1000px) {
+  .tp__more { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .tp__hero { aspect-ratio: 4 / 3; }
+  .tp__more { grid-template-columns: 1fr; }
+  /* «Запросити дизайнера зі зразками» не переноситься (nowrap у .btn),
+     тож на вузькому екрані кнопки стають у стовпчик — як у hero. */
+  .tp__cta { flex-direction: column; align-items: stretch; }
+  .tp__cta a { width: 100%; text-align: center; padding: 18px 20px; }
+}
+
+/* --------------------------------------------------------------------------
+   25. Перегляд скріншота відгуку на весь екран
+   -------------------------------------------------------------------------- */
+.shots__item {
+  border: 1px solid var(--c-line); padding: 0; margin: 0;
+  background: var(--c-ph-photo);
+  display: block;
+  transition: border-color .25s ease, transform .5s var(--ease-photo);
+}
+/* display: block вище перебиває [hidden] з таблиці браузера, і плитки
+   «понад шість» лишалися видимі — сітка розросталась на всі скріни. */
+.shots__item[hidden] { display: none; }
+/* Курсор і наведення — лише коли плитка справді клікабельна: поки
+   скрінів немає, у сітці стоять порожні заглушки. */
+button.shots__item { cursor: zoom-in; }
+button.shots__item:hover { border-color: var(--c-line-input); transform: translateY(-2px); }
+/* Скрін телефона — 9:16, плитка — 3:4, тож видно трохи більше за
+   половину висоти. Беремо верхню частину, а не середину: переписка
+   завжди починається згори, а внизу в половини скрінів клавіатура. */
+.shots__item img { object-position: 50% 25%; transition: transform .9s var(--ease-photo); }
+button.shots__item:hover img { transform: scale(1.04); }
+
+/* Остання плитка бере на себе решту скрінів: «+6». Клік по ній
+   відкриває перегляд, у якому є всі, зокрема й непоказані. */
+.shots__item--more { position: relative; }
+.shots__more-badge {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(11, 11, 12, .58); color: #fff;
+  font-size: 21px; font-weight: 600; letter-spacing: -.02em;
+  transition: background-color .25s ease;
+}
+.shots__item--more:hover .shots__more-badge { background: rgba(11, 11, 12, .44); }
+
+.shotbox {
+  border: none; padding: 0; margin: auto;
+  width: 100vw; max-width: 100vw;
+  height: 100dvh; max-height: 100dvh;
+  background: transparent; overflow: hidden;
+}
+/*
+ * Сітка, а не absolute+inset: інакше <img> розтягується на всю дозволену
+ * площу, довкола картинки лишається прозора зона, і клік по ній не
+ * закриває перегляд — хоча виглядає як «повз».
+ *
+ * І тільки на [open]: display у самому .shotbox перебив би правило
+ * браузера dialog:not([open]) { display: none } — закрите вікно
+ * малювало б свої кнопки поверх сторінки.
+ */
+.shotbox[open] { display: grid; place-items: center; }
+.shotbox::backdrop {
+  background: rgba(11, 11, 12, .92);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.shotbox__img {
+  display: block; width: auto; height: auto;
+  max-width: min(92vw, 620px); max-height: 88dvh;
+  border-radius: 10px;
+  cursor: default;
+}
+.shotbox__close,
+.shotbox__nav {
+  position: absolute; z-index: 2;
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.28); background: rgba(11,11,12,.5);
+  color: #fff; font-size: 24px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background-color .25s ease, border-color .25s ease;
+}
+.shotbox__close:hover,
+.shotbox__nav:hover { background: rgba(11,11,12,.85); border-color: rgba(255,255,255,.6); }
+.shotbox__close { top: 18px; right: 18px; font-size: 28px; }
+.shotbox__nav--prev { left: 18px; top: 50%; transform: translateY(-50%); }
+.shotbox__nav--next { right: 18px; top: 50%; transform: translateY(-50%); }
+.shotbox__count {
+  position: absolute; left: 0; right: 0; bottom: 18px; z-index: 2;
+  text-align: center; color: rgba(255,255,255,.72);
+  font-size: 12.5px; letter-spacing: .14em; font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .shotbox__img { max-width: 94vw; max-height: 82dvh; }
+  /* Стрілки внизу, а не по боках: посеред екрана вони перекривають
+     сам скрін, а гортати на телефоні зручніше свайпом. */
+  .shotbox__nav--prev { left: calc(50% - 62px); top: auto; bottom: 46px; transform: none; }
+  .shotbox__nav--next { right: calc(50% - 62px); top: auto; bottom: 46px; transform: none; }
+  .shotbox__count { bottom: 106px; }
+}

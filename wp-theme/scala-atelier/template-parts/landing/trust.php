@@ -118,9 +118,6 @@ if ( ! $scala_includes && ! $scala_reviews ) {
 						</button>
 					<?php endforeach; ?>
 				</div>
-				<div class="shots__note">
-					<?php esc_html_e( 'Живі повідомлення клієнтів — без правок і копірайтингу.', 'scala' ); ?>
-				</div>
 			<?php endif; ?>
 		</div>
 

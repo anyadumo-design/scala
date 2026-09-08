@@ -107,10 +107,16 @@ def patch_index(items):
     path = os.path.join(ROOT, 'index.html')
     s = open(path).read()
     new = markup(items)
-    s2 = re.sub(r'      <div class="shots">.*?</div>\n(?=      <div class="shots__note")',
-                new + '\n', s, flags=re.S)
-    if s2 == s:
-        print('  ! блок .shots в index.html не знайдено — розмітку не замінено')
+    # Порівнювати рядки до і після не можна: якщо скріни не змінилися,
+    # результат збігається з оригіналом — і це не помилка. Дивимось,
+    # чи знайшлися межі, а не чи змінився текст.
+    s2, hits = re.subn(
+        r'(<!-- ПЛИТКИ ВІДГУКІВ:[^\n]*-->\n).*?(\n      <!-- /ПЛИТКИ ВІДГУКІВ -->)',
+        lambda m: m.group(1) + new + m.group(2),
+        s, flags=re.S)
+
+    if not hits:
+        print('  ! межі «ПЛИТКИ ВІДГУКІВ» в index.html не знайдено — розмітку не замінено')
         return
     open(path, 'w').write(s2)
     print('  index.html оновлено: %d плиток, %d у перегляді' % (min(TILES, len(items)), len(items)))

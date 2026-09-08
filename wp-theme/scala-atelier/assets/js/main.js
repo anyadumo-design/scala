@@ -379,20 +379,30 @@
       if (first) first.focus({ preventScroll: true });
     });
 
+    // Прибирання окремо: подія close спрацьовує не в кожному браузері,
+    // а без неї на body лишається overflow: hidden і сторінка не гортається.
+    function shut() {
+      document.body.style.overflow = '';
+      // Повертаємо фокус на кнопку, з якої вікно відкрили.
+      if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
+    }
+
+    function hide() {
+      modal.close();
+      shut();
+    }
+
     $$('[data-modal-close]', modal).forEach(function (b) {
-      b.addEventListener('click', function () { modal.close(); });
+      b.addEventListener('click', hide);
     });
 
     // Клік по підкладці поза формою — теж закриття.
     modal.addEventListener('click', function (ev) {
-      if (box && !box.contains(ev.target)) modal.close();
+      if (box && !box.contains(ev.target)) hide();
     });
 
-    modal.addEventListener('close', function () {
-      document.body.style.overflow = '';
-      // Повертаємо фокус на кнопку, з якої вікно відкрили.
-      if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
-    });
+    // Esc закриває силами браузера — прибираємо за подією.
+    modal.addEventListener('close', shut);
   }
 
   /* ------------------------------------------------------------------------
@@ -468,6 +478,130 @@
   }
 
   /* ------------------------------------------------------------------------
+     9. Перегляд скріншотів відгуків на весь екран
+
+     У плитці скрін переписки читається погано — це мініатюра. Клік
+     відкриває його в повний розмір, зі стрілками між скрінами: людина
+     гортає відгуки, не закриваючи вікно.
+     ------------------------------------------------------------------------ */
+  function initLightbox() {
+    var modal = $('#shot-modal');
+    if (!modal || typeof modal.showModal !== 'function') return;
+
+    var img    = $('.shotbox__img', modal);
+    var count  = $('.shotbox__count', modal);
+    var prev   = $('[data-shot-prev]', modal);
+    var next   = $('[data-shot-next]', modal);
+    var shots  = [];
+    var index  = 0;
+    var opener = null;
+
+    function collect() {
+      shots = $$('[data-shot]').filter(function (el) {
+        return !!el.getAttribute('data-shot');
+      });
+    }
+
+    function preload(i) {
+      var el = shots[i];
+      if (!el) return;
+      var pre = new Image();
+      pre.src = el.getAttribute('data-shot');
+    }
+
+    function show(i) {
+      if (!shots.length) return;
+
+      // Гортання по колу: з останнього — на перший.
+      index = (i + shots.length) % shots.length;
+
+      var el  = shots[index];
+      var src = el.getAttribute('data-shot');
+      var alt = el.getAttribute('data-shot-alt') || '';
+
+      img.src = src;
+      img.alt = alt;
+
+      if (count) count.textContent = (index + 1) + ' / ' + shots.length;
+
+      var single = shots.length < 2;
+      if (prev) prev.hidden = single;
+      if (next) next.hidden = single;
+
+      preload(index + 1);
+      preload(index - 1);
+    }
+
+    document.addEventListener('click', function (ev) {
+      var trigger = ev.target.closest ? ev.target.closest('[data-shot]') : null;
+      if (!trigger) return;
+
+      ev.preventDefault();
+      opener = trigger;
+
+      collect();
+      show(shots.indexOf(trigger));
+
+      modal.showModal();
+      document.body.style.overflow = 'hidden';
+    });
+
+    if (prev) prev.addEventListener('click', function () { show(index - 1); });
+    if (next) next.addEventListener('click', function () { show(index + 1); });
+
+    /*
+     * Прибирання винесене окремо і викликається і з події close, і напряму.
+     * Подія close у частині браузерів не спрацьовує, а без прибирання на
+     * body лишається overflow: hidden — сторінка перестає гортатися зовсім.
+     * Виклик двічі нічого не ламає.
+     */
+    function shut() {
+      document.body.style.overflow = '';
+      // Порожній src не лишаємо: браузер вважає це запитом на сторінку.
+      img.removeAttribute('src');
+      if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
+    }
+
+    function hide() {
+      modal.close();
+      shut();
+    }
+
+    $$('[data-shot-close]', modal).forEach(function (b) {
+      b.addEventListener('click', hide);
+    });
+
+    // Клік повз саме зображення закриває — так поводяться всі перегляди фото.
+    modal.addEventListener('click', function (ev) {
+      if (ev.target === img) return;
+      if (ev.target.closest && ev.target.closest('button')) return;
+      hide();
+    });
+
+    modal.addEventListener('keydown', function (ev) {
+      if (ev.key === 'ArrowLeft')  { ev.preventDefault(); show(index - 1); }
+      if (ev.key === 'ArrowRight') { ev.preventDefault(); show(index + 1); }
+    });
+
+    // Свайп на телефоні.
+    var startX = null;
+
+    modal.addEventListener('touchstart', function (ev) {
+      startX = ev.touches[0].clientX;
+    }, { passive: true });
+
+    modal.addEventListener('touchend', function (ev) {
+      if (startX === null) return;
+      var dx = ev.changedTouches[0].clientX - startX;
+      startX = null;
+      if (Math.abs(dx) > 50) show(dx < 0 ? index + 1 : index - 1);
+    }, { passive: true });
+
+    // Esc закриває вікно силами браузера — прибираємо за подією.
+    modal.addEventListener('close', shut);
+  }
+
+  /* ------------------------------------------------------------------------
      Старт
      ------------------------------------------------------------------------ */
   function init() {
@@ -481,6 +615,7 @@
     initScenarios();
     initCatalogFilter();
     initForms();
+    initLightbox();
   }
 
   if (document.readyState === 'loading') {
