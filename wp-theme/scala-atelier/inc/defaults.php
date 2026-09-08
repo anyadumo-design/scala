@@ -289,6 +289,15 @@ function scala_image_alt_for( string $name ): string {
 		return $alts[ $name ];
 	}
 
+	// Скріншоти відгуків: review-03 → «…переписки 3».
+	if ( str_starts_with( $name, 'review-' ) ) {
+		return sprintf(
+			/* translators: %d — порядковий номер скріншота */
+			__( 'Відгук клієнта, скріншот переписки %d', 'scala' ),
+			(int) substr( $name, 7 )
+		);
+	}
+
 	// Фото тканин: fab-oksamyt → «Тканина Оксамит».
 	if ( str_starts_with( $name, 'fab-' ) ) {
 		return 'Тканина ' . ucfirst( str_replace( '-', ' ', substr( $name, 4 ) ) );
@@ -367,6 +376,22 @@ function scala_seed_options( array $img ): void {
 		array( 'image' => $img['work-01'] ?? 0, 'alt' => 'Виконана робота Scala' ),
 		array( 'image' => $img['work-02'] ?? 0, 'alt' => 'Виконана робота Scala' ),
 		array( 'image' => $img['project-commercial'] ?? 0, 'alt' => 'Виконана робота Scala' ),
+	);
+
+	// Скріншоти переписок з клієнтами. У сітці показуються шість,
+	// решта відкривається в перегляді на весь екран.
+	$values['screenshots'] = array(
+		array( 'image' => $img['review-01'] ?? 0 ),
+		array( 'image' => $img['review-02'] ?? 0 ),
+		array( 'image' => $img['review-03'] ?? 0 ),
+		array( 'image' => $img['review-04'] ?? 0 ),
+		array( 'image' => $img['review-05'] ?? 0 ),
+		array( 'image' => $img['review-06'] ?? 0 ),
+		array( 'image' => $img['review-07'] ?? 0 ),
+		array( 'image' => $img['review-08'] ?? 0 ),
+		array( 'image' => $img['review-09'] ?? 0 ),
+		array( 'image' => $img['review-10'] ?? 0 ),
+		array( 'image' => $img['review-11'] ?? 0 ),
 	);
 
 	$values['needs'] = array(

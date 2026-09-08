@@ -1181,7 +1181,7 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
     scrollbar-width: none;
   }
   .shots::-webkit-scrollbar { display: none; }
-  .shots__item { flex: none; width: min(62vw, 260px); }
+  .shots .shots__item { flex: none; width: min(62vw, 260px); }
 
   .cat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 }
@@ -1287,14 +1287,20 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 .shots__item {
   border: 1px solid var(--c-line); padding: 0; margin: 0;
   background: var(--c-ph-photo);
-  display: block; width: 100%;
+  display: block;
   transition: border-color .25s ease, transform .5s var(--ease-photo);
 }
+/* display: block вище перебиває [hidden] з таблиці браузера, і плитки
+   «понад шість» лишалися видимі — сітка розросталась на всі скріни. */
+.shots__item[hidden] { display: none; }
 /* Курсор і наведення — лише коли плитка справді клікабельна: поки
    скрінів немає, у сітці стоять порожні заглушки. */
 button.shots__item { cursor: zoom-in; }
 button.shots__item:hover { border-color: var(--c-line-input); transform: translateY(-2px); }
-.shots__item img { transition: transform .9s var(--ease-photo); }
+/* Скрін телефона — 9:16, плитка — 3:4, тож видно трохи більше за
+   половину висоти. Беремо верхню частину, а не середину: переписка
+   завжди починається згори, а внизу в половини скрінів клавіатура. */
+.shots__item img { object-position: 50% 25%; transition: transform .9s var(--ease-photo); }
 button.shots__item:hover img { transform: scale(1.04); }
 
 /* Остання плитка бере на себе решту скрінів: «+6». Клік по ній
@@ -1314,11 +1320,17 @@ button.shots__item:hover img { transform: scale(1.04); }
   width: 100vw; max-width: 100vw;
   height: 100dvh; max-height: 100dvh;
   background: transparent; overflow: hidden;
-  /* Сітка, а не absolute+inset: інакше <img> розтягується на всю
-     дозволену площу, довкола картинки лишається прозора зона,
-     і клік по ній не закриває перегляд — хоча виглядає як «повз». */
-  display: grid; place-items: center;
 }
+/*
+ * Сітка, а не absolute+inset: інакше <img> розтягується на всю дозволену
+ * площу, довкола картинки лишається прозора зона, і клік по ній не
+ * закриває перегляд — хоча виглядає як «повз».
+ *
+ * І тільки на [open]: display у самому .shotbox перебив би правило
+ * браузера dialog:not([open]) { display: none } — закрите вікно
+ * малювало б свої кнопки поверх сторінки.
+ */
+.shotbox[open] { display: grid; place-items: center; }
 .shotbox::backdrop {
   background: rgba(11, 11, 12, .92);
   -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
