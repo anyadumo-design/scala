@@ -1280,3 +1280,80 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   .tp__cta { flex-direction: column; align-items: stretch; }
   .tp__cta a { width: 100%; text-align: center; padding: 18px 20px; }
 }
+
+/* --------------------------------------------------------------------------
+   25. Перегляд скріншота відгуку на весь екран
+   -------------------------------------------------------------------------- */
+.shots__item {
+  border: 1px solid var(--c-line); padding: 0; margin: 0;
+  background: var(--c-ph-photo);
+  display: block; width: 100%;
+  transition: border-color .25s ease, transform .5s var(--ease-photo);
+}
+/* Курсор і наведення — лише коли плитка справді клікабельна: поки
+   скрінів немає, у сітці стоять порожні заглушки. */
+button.shots__item { cursor: zoom-in; }
+button.shots__item:hover { border-color: var(--c-line-input); transform: translateY(-2px); }
+.shots__item img { transition: transform .9s var(--ease-photo); }
+button.shots__item:hover img { transform: scale(1.04); }
+
+/* Остання плитка бере на себе решту скрінів: «+6». Клік по ній
+   відкриває перегляд, у якому є всі, зокрема й непоказані. */
+.shots__item--more { position: relative; }
+.shots__more-badge {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(11, 11, 12, .58); color: #fff;
+  font-size: 21px; font-weight: 600; letter-spacing: -.02em;
+  transition: background-color .25s ease;
+}
+.shots__item--more:hover .shots__more-badge { background: rgba(11, 11, 12, .44); }
+
+.shotbox {
+  border: none; padding: 0; margin: auto;
+  width: 100vw; max-width: 100vw;
+  height: 100dvh; max-height: 100dvh;
+  background: transparent; overflow: hidden;
+  /* Сітка, а не absolute+inset: інакше <img> розтягується на всю
+     дозволену площу, довкола картинки лишається прозора зона,
+     і клік по ній не закриває перегляд — хоча виглядає як «повз». */
+  display: grid; place-items: center;
+}
+.shotbox::backdrop {
+  background: rgba(11, 11, 12, .92);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.shotbox__img {
+  display: block; width: auto; height: auto;
+  max-width: min(92vw, 620px); max-height: 88dvh;
+  border-radius: 10px;
+  cursor: default;
+}
+.shotbox__close,
+.shotbox__nav {
+  position: absolute; z-index: 2;
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.28); background: rgba(11,11,12,.5);
+  color: #fff; font-size: 24px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background-color .25s ease, border-color .25s ease;
+}
+.shotbox__close:hover,
+.shotbox__nav:hover { background: rgba(11,11,12,.85); border-color: rgba(255,255,255,.6); }
+.shotbox__close { top: 18px; right: 18px; font-size: 28px; }
+.shotbox__nav--prev { left: 18px; top: 50%; transform: translateY(-50%); }
+.shotbox__nav--next { right: 18px; top: 50%; transform: translateY(-50%); }
+.shotbox__count {
+  position: absolute; left: 0; right: 0; bottom: 18px; z-index: 2;
+  text-align: center; color: rgba(255,255,255,.72);
+  font-size: 12.5px; letter-spacing: .14em; font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .shotbox__img { max-width: 94vw; max-height: 82dvh; }
+  /* Стрілки внизу, а не по боках: посеред екрана вони перекривають
+     сам скрін, а гортати на телефоні зручніше свайпом. */
+  .shotbox__nav--prev { left: calc(50% - 62px); top: auto; bottom: 46px; transform: none; }
+  .shotbox__nav--next { right: calc(50% - 62px); top: auto; bottom: 46px; transform: none; }
+  .shotbox__count { bottom: 106px; }
+}

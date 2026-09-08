@@ -172,6 +172,10 @@ $scala_bar_href = $scala_is_home
 
 <?php get_template_part( 'template-parts/lead-modal' ); ?>
 
+<?php if ( is_front_page() ) : ?>
+	<?php get_template_part( 'template-parts/shot-modal' ); ?>
+<?php endif; ?>
+
 <?php wp_footer(); ?>
 </body>
 </html>

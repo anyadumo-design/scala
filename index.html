@@ -952,6 +952,17 @@
   </div>
 </dialog>
 
+<!-- ПЕРЕГЛЯД СКРІНШОТА ВІДГУКУ.
+     У плитці переписку не прочитати — клік відкриває її на весь екран,
+     зі стрілками й свайпом між скрінами. -->
+<dialog id="shot-modal" class="shotbox" aria-label="Скріншот відгуку">
+  <button type="button" class="shotbox__close" data-shot-close aria-label="Закрити">&times;</button>
+  <button type="button" class="shotbox__nav shotbox__nav--prev" data-shot-prev aria-label="Попередній відгук">&lsaquo;</button>
+  <img class="shotbox__img" alt="" />
+  <button type="button" class="shotbox__nav shotbox__nav--next" data-shot-next aria-label="Наступний відгук">&rsaquo;</button>
+  <div class="shotbox__count" aria-live="polite"></div>
+</dialog>
+
 <script src="assets/js/main.js"></script>
 </body>
 </html>

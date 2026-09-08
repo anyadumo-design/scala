@@ -72,22 +72,50 @@ if ( ! $scala_includes && ! $scala_reviews ) {
 			<?php endif; ?>
 
 			<?php if ( $scala_shots ) : ?>
+				<?php
+				/*
+				 * У плитці переписку не прочитати — це мініатюра. Клік
+				 * відкриває скрін на весь екран, зі стрілками між ними.
+				 * У сітці показуємо шість; решта лишається в перегляді,
+				 * а остання плитка бере на себе лічильник «ще N».
+				 */
+				$scala_shots_max    = 6;
+				$scala_shots_hidden = max( 0, count( $scala_shots ) - $scala_shots_max );
+				?>
 				<div class="trust__label trust__label--gap"><?php esc_html_e( 'Скріншоти з переписок', 'scala' ); ?></div>
 				<div class="shots">
-					<?php foreach ( $scala_shots as $scala_shot ) : ?>
-						<div class="shots__item">
+					<?php foreach ( $scala_shots as $scala_i => $scala_shot ) : ?>
+						<?php
+						$scala_shot_id  = (int) ( $scala_shot['image'] ?? 0 );
+						$scala_full     = $scala_shot_id ? scala_image_url( $scala_shot_id, 'scala-lg' ) : '';
+						$scala_over     = $scala_shots_hidden && ( $scala_shots_max - 1 === $scala_i );
+						$scala_beyond   = $scala_i >= $scala_shots_max;
+						/* translators: %d — порядковий номер скріншота */
+						$scala_shot_alt = sprintf( __( 'Відгук клієнта, скріншот переписки %d', 'scala' ), $scala_i + 1 );
+						?>
+						<button type="button"
+								class="shots__item<?php echo $scala_over ? ' shots__item--more' : ''; ?>"
+								<?php echo $scala_beyond ? 'hidden' : ''; ?>
+								data-shot="<?php echo esc_url( $scala_full ); ?>"
+								data-shot-alt="<?php echo esc_attr( $scala_shot_alt ); ?>"
+								aria-label="<?php echo esc_attr( $scala_shot_alt ); ?>">
 							<?php
-							scala_image(
-								$scala_shot['image'] ?? 0,
-								array(
-									'size'        => 'scala-portrait',
-									'sizes'       => '(max-width:760px) 33vw, 12vw',
-									'alt'         => '',
-									'placeholder' => __( 'Скрін переписки', 'scala' ),
-								)
-							);
+							if ( ! $scala_beyond ) {
+								scala_image(
+									$scala_shot_id,
+									array(
+										'size'        => 'scala-portrait',
+										'sizes'       => '(max-width:760px) 62vw, 12vw',
+										'alt'         => '',
+										'placeholder' => __( 'Скрін переписки', 'scala' ),
+									)
+								);
+							}
 							?>
-						</div>
+							<?php if ( $scala_over ) : ?>
+								<span class="shots__more-badge">+<?php echo (int) ( $scala_shots_hidden + 1 ); ?></span>
+							<?php endif; ?>
+						</button>
 					<?php endforeach; ?>
 				</div>
 				<div class="shots__note">

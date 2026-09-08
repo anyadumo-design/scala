@@ -3,3 +3,6 @@ Thumbs.db
 *.log
 node_modules/
 .claude/
+
+# Вихідні скріншоти відгуків: у репозиторій не йдуть, лише зібрані WebP
+_source-reviews/
