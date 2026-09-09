@@ -24,6 +24,8 @@ require_once SCALA_DIR . '/inc/cpt.php';
 require_once SCALA_DIR . '/inc/metaboxes.php';
 require_once SCALA_DIR . '/inc/leads.php';
 require_once SCALA_DIR . '/inc/seo.php';
+require_once SCALA_DIR . '/inc/redirects.php';
 require_once SCALA_DIR . '/inc/seed-content.php';
 require_once SCALA_DIR . '/inc/seed-types.php';
+require_once SCALA_DIR . '/inc/seed-posts.php';
 require_once SCALA_DIR . '/inc/defaults.php';

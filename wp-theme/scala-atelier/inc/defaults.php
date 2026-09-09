@@ -37,6 +37,36 @@ function scala_seed_content(): void {
 	scala_seed_reviews();
 	scala_seed_instagram( $images );
 	scala_seed_pages();
+	scala_seed_posts();
+}
+
+/**
+ * Статті, перенесені з чинного сайту.
+ *
+ * Слаги лишаємо старі: адреси вже проіндексовані, і поки вони
+ * відкриваються, редіректи для них не потрібні.
+ *
+ * @return void
+ */
+function scala_seed_posts(): void {
+	$order = 0;
+
+	foreach ( scala_post_seed_data() as $item ) {
+		if ( get_page_by_path( $item['slug'], OBJECT, 'post' ) ) {
+			continue;
+		}
+
+		scala_seed_post(
+			'post',
+			$item['title'],
+			array(
+				'order'   => $order++,
+				'slug'    => $item['slug'],
+				'excerpt' => $item['excerpt'],
+				'content' => $item['content'],
+			)
+		);
+	}
 }
 
 /**
@@ -58,19 +88,19 @@ function scala_seed_pages(): void {
 		),
 		'catalog' => array(
 			'title'    => __( 'Каталог', 'scala' ),
-			'slug'     => 'catalog',
+			'slug'     => 'katalog',
 			'template' => 'template-catalog.php',
 			'content'  => scala_prose_catalog(),
 		),
 		'about' => array(
 			'title'    => __( 'Мистецтво тканини', 'scala' ),
-			'slug'     => 'about',
+			'slug'     => 'pro-brend',
 			'template' => 'template-about.php',
 			'content'  => scala_prose_about(),
 		),
 		'contacts' => array(
 			'title'    => __( 'Напишіть або зателефонуйте', 'scala' ),
-			'slug'     => 'contacts',
+			'slug'     => 'kontakty',
 			'template' => 'template-contacts.php',
 			'content'  => scala_prose_contacts(),
 		),
