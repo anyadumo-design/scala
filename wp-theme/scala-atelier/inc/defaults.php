@@ -112,6 +112,17 @@ function scala_seed_pages(): void {
 		$existing = get_page_by_path( $page['slug'] );
 
 		if ( $existing ) {
+			/*
+			 * Сторінка з таким слагом уже є. Так буває, коли тему ставлять
+			 * у чинний WordPress: /pro-brend/ і /kontakty/ там існують
+			 * і вже проіндексовані. Текст клієнта не чіпаємо — він його
+			 * писав, — але шаблон призначаємо, інакше сторінка малюється
+			 * звичайним page.php і весь її дизайн губиться.
+			 */
+			if ( $page['template'] ) {
+				update_post_meta( (int) $existing->ID, '_wp_page_template', $page['template'] );
+			}
+
 			$created[ $key ] = (int) $existing->ID;
 			continue;
 		}
