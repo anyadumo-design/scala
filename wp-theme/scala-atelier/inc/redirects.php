@@ -62,6 +62,33 @@ function scala_redirect_map(): array {
 		'ru/kak-vybrat-ydealnye-tkany-dlya-shtor' => 'novost-3',
 		'ru/kak-pravylno-vybrat-karnyz'           => 'yak-pravilno-vibrati-karniz',
 		'ru/novost-4'                             => 'yaki-vikonni-sistemi-ye-na-rinku',
+
+		/*
+		 * Ті самі російські сторінки, але вже без префікса /ru/.
+		 * Префікс дає Polylang: щойно його вимикають, адреси стають
+		 * кореневими. Ці сторінки ми прибираємо, та якщо хтось має
+		 * на них посилання чи вони встигли потрапити в індекс —
+		 * хай ведуть куди треба, а не в 404.
+		 */
+		'yskusstvo-tkany'                  => '',
+		'galereya-2'                       => 'katalog',
+		'yndyvydualnyj-podbor-tkany'       => 'katalog',
+		'pro-brend-2'                      => 'pro-brend',
+		'sotrudnychestvo-dlya-dyzajnerov'  => 'pro-brend',
+		'poshyv-y-montazh-pod-klyuch'      => 'pro-brend',
+		'vyezd-dyzajnera'                  => 'pro-brend',
+		'kontakty-2'                       => 'kontakty',
+		'avstryjskye-shtory'               => 'vydy-shtor/avstrijski-shtory',
+		'rulonnye-shtory'                  => 'vydy-shtor/rulonni-shtory',
+		'kak-vybrat-ydealnye-tkany-dlya-shtor' => 'novost-3',
+		'kak-pravylno-vybrat-karnyz'       => 'yak-pravilno-vibrati-karniz',
+		'novost-4'                         => 'yaki-vikonni-sistemi-ye-na-rinku',
+
+		'yaponskye-shtory-mynymalyzm-styl-y-funkczyonalnost'
+			=> 'vydy-shtor/yaponski-paneli',
+
+		'elektrokarnyzy-sovremennoe-reshenye-dlya-upravlenyya-shtoramy'
+			=> 'elektrokarnyzy-suchasne-rishennya-dlya-keruvannya-shtoramy',
 	);
 }
 

@@ -20,6 +20,7 @@ require_once SCALA_DIR . '/inc/enqueue.php';
 require_once SCALA_DIR . '/inc/fields.php';
 require_once SCALA_DIR . '/inc/options-schema.php';
 require_once SCALA_DIR . '/inc/options-page.php';
+require_once SCALA_DIR . '/inc/migrate-page.php';
 require_once SCALA_DIR . '/inc/cpt.php';
 require_once SCALA_DIR . '/inc/metaboxes.php';
 require_once SCALA_DIR . '/inc/leads.php';
