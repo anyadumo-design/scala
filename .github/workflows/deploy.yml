@@ -1,0 +1,52 @@
+name: Deploy theme
+
+# Тема їде на сервер сама, кожним пушем у main.
+#
+# Навіщо: до цього кожне оновлення означало «зібрати zip, зайти в адмінку,
+# завантажити, підтвердити заміну». Тепер — git push, і за хвилину зміни
+# на сайті. Руками в адмінку заходити більше не треба взагалі.
+#
+# Що НЕ робить: не активує тему. Активація — одноразова дія, і поки
+# на акаунті немає SSH, зробити її звідси нічим. Один клік в адмінці,
+# один раз за життя сайту.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wp-theme/scala-atelier/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Залити тему на scalahome.com.ua
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Забрати репозиторій
+        uses: actions/checkout@v4
+
+      - name: Перевірити, що тема ціла
+        run: |
+          test -f wp-theme/scala-atelier/style.css || { echo "Немає style.css — це не тема"; exit 1; }
+          test -f wp-theme/scala-atelier/functions.php || { echo "Немає functions.php"; exit 1; }
+          for f in $(find wp-theme/scala-atelier -name '*.php'); do
+            php -l "$f" > /dev/null || { echo "Синтаксична помилка: $f"; exit 1; }
+          done
+          echo "Файлів PHP перевірено: $(find wp-theme/scala-atelier -name '*.php' | wc -l)"
+
+      - name: Залити по FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./wp-theme/scala-atelier/
+          server-dir: ${{ secrets.FTP_PATH }}
+          # dangerous-clean-slate НЕ вмикаємо: на сервері поруч лежать
+          # файли, яких немає в репозиторії, і зносити їх не можна.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.DS_Store
