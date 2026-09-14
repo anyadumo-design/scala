@@ -150,10 +150,11 @@ function scala_setup_notice(): void {
 	}
 
 	printf(
-		'<div class="notice notice-warning"><p>%s <a href="%s">%s</a></p></div>',
-		esc_html__( 'Тему активовано, але сайт ще не наповнено.', 'scala' ),
+		'<div class="notice notice-warning"><p><strong>%s</strong> %s <a class="button button-primary" href="%s">%s</a></p></div>',
+		esc_html__( 'SCALA:', 'scala' ),
+		esc_html__( 'тему активовано, але сайт ще не наповнено.', 'scala' ),
 		esc_url( admin_url( 'admin.php?page=scala-migrate' ) ),
-		esc_html__( 'Наповнити зараз', 'scala' )
+		esc_html__( 'Наповнити сайт', 'scala' )
 	);
 }
 add_action( 'admin_notices', 'scala_setup_notice' );
