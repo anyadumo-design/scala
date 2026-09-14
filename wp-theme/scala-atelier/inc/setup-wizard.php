@@ -129,13 +129,40 @@ function scala_record_menu_state(): void {
 		$mine[] = $item[2] . '(' . $item[1] . ')';
 	}
 
+	/*
+	 * Перелік прав, а не одне: рівно тут ми двічі вгадали неправильно.
+	 * Хай сайт сам скаже, що в нього є, і тоді сторінки теми вимагатимуть
+	 * саме того права, яке на цьому сайті справді працює.
+	 */
+	$caps = array(
+		'manage_options',
+		'edit_theme_options',
+		'switch_themes',
+		'install_themes',
+		'edit_pages',
+		'publish_pages',
+		'list_users',
+		'activate_plugins',
+		'upload_files',
+		'edit_posts',
+	);
+
+	$have = array();
+
+	foreach ( $caps as $cap ) {
+		$have[] = $cap . ( current_user_can( $cap ) ? '+' : '−' );
+	}
+
+	$user = wp_get_current_user();
+
 	update_option(
 		'scala_menu_debug',
 		array(
-			'can_manage' => current_user_can( 'manage_options' ) ? 'так' : 'НІ',
-			'user'       => wp_get_current_user()->user_login,
-			'items'      => $mine ? implode( ' | ', $mine ) : 'ПОРОЖНЬО',
-			'when'       => gmdate( 'H:i:s' ),
+			'user'  => $user->user_login,
+			'roles' => implode( ',', (array) $user->roles ),
+			'caps'  => implode( ' ', $have ),
+			'items' => $mine ? implode( ' | ', $mine ) : 'ПОРОЖНЬО',
+			'when'  => gmdate( 'H:i:s' ),
 		)
 	);
 }
