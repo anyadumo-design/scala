@@ -371,3 +371,59 @@ function scala_type_json_ld(): void {
 	);
 }
 add_action( 'wp_head', 'scala_type_json_ld', 6 );
+
+/**
+ * Вбудована карта сайту WordPress: прибираємо зайве.
+ *
+ * Yoast-карта на цьому сайті вимкнена, тож працює вбудована — і вона
+ * гарна, але за замовчуванням тягне в себе все публічне:
+ *
+ * - авторів: /author/admin/ і решту — це розкриває логіни адміністраторів
+ *   і не має жодної пошукової цінності;
+ * - службовий тип записів плагіна блоків (atfp_add_blocks);
+ * - рубрики й мітки — одна рубрика на сім статей, тонка сторінка.
+ *
+ * Лишаються: сторінки, статті, види штор, тканини, проєкти.
+ * Якщо колись увімкнуть карту Yoast, вона підмінить вбудовану сама,
+ * і ці фільтри просто перестануть бути потрібні.
+ */
+add_filter(
+	'wp_sitemaps_add_provider',
+	static function ( $provider, string $name ) {
+		return 'users' === $name ? false : $provider;
+	},
+	10,
+	2
+);
+
+add_filter(
+	'wp_sitemaps_post_types',
+	static function ( array $types ): array {
+		unset( $types['atfp_add_blocks'] );
+		return $types;
+	}
+);
+
+add_filter(
+	'wp_sitemaps_taxonomies',
+	static function ( array $taxonomies ): array {
+		unset( $taxonomies['category'], $taxonomies['post_tag'] );
+		return $taxonomies;
+	}
+);
+
+/**
+ * Сторінок авторів на сайті ательє не буває.
+ *
+ * /author/admin/ і /?author=1 — стандартний спосіб дізнатися логіни
+ * для перебору паролів. Ведемо на головну.
+ *
+ * @return void
+ */
+function scala_no_author_pages(): void {
+	if ( is_author() ) {
+		wp_safe_redirect( home_url( '/' ), 301 );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'scala_no_author_pages', 1 );

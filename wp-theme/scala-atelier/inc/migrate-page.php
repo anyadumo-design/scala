@@ -208,10 +208,6 @@ function scala_migrate_checks(): array {
 			'ok'   => '' !== (string) scala_opt( 'notify_email', '' ),
 			'text' => __( 'Вказано пошту для заявок', 'scala' ),
 		),
-		array(
-			'ok'   => '' !== (string) scala_opt( 'address', '' ),
-			'text' => __( 'Вказано адресу шоуруму', 'scala' ),
-		),
 	);
 
 	return $checks;
