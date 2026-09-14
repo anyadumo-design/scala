@@ -185,6 +185,13 @@ function scala_render_migrate_page(): void {
 	<div class="wrap scala-settings">
 		<h1><?php esc_html_e( 'Переїзд зі старого сайту', 'scala' ); ?></h1>
 
+		<?php
+		// Наповнення йде першим: поки його немає, решта кроків безпредметна.
+		scala_render_setup_block();
+		?>
+
+		<hr style="margin:32px 0" />
+
 		<?php if ( $moved > 0 ) : ?>
 			<div class="notice notice-success"><p>
 				<?php

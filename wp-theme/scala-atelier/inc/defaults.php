@@ -24,8 +24,8 @@ function scala_seed_content(): void {
 		return;
 	}
 
-	update_option( 'scala_seeded', SCALA_VERSION );
-
+	// Фото на цей момент уже в медіатеці — їх залив майстер налаштування
+	// окремими порціями. Тут лишається тільки робота з базою, вона швидка.
 	$images = scala_import_bundled_images();
 
 	scala_seed_options( $images );
@@ -38,6 +38,12 @@ function scala_seed_content(): void {
 	scala_seed_instagram( $images );
 	scala_seed_pages();
 	scala_seed_posts();
+
+	// Прапорець — у кінці. Раніше він стояв на початку, і коли наповнення
+	// падало посеред роботи, повторний запуск уже нічого не робив:
+	// сайт вважав, що все створено.
+	update_option( 'scala_seeded', SCALA_VERSION );
+	delete_option( 'scala_setup_needed' );
 }
 
 /**
@@ -218,15 +224,47 @@ function scala_seed_menu( array $pages ): void {
 	$locations['primary'] = $menu_id;
 	set_theme_mod( 'nav_menu_locations', $locations );
 }
-add_action( 'after_switch_theme', 'scala_seed_content' );
+/*
+ * НЕ чіпляємо на after_switch_theme.
+ *
+ * Наповнення заливає 53 фото, а WordPress робить із кожного девʼять
+ * розмірів — чотири своїх і пʼять наших. Це 477 операцій зміни розміру,
+ * і в одному запиті вони не влазять: PHP на звичайному хостингу
+ * обривається за 30 секунд, активація падає з критичною помилкою,
+ * а сайт лишається з нашою темою й без жодного контенту.
+ *
+ * Тому наповнення запускається вручну, покроково, з екрана
+ * SCALA → Переїзд. Див. inc/setup-wizard.php.
+ */
+add_action( 'after_switch_theme', 'scala_mark_setup_needed' );
+
+/**
+ * Позначає, що сайт ще не наповнено.
+ *
+ * @return void
+ */
+function scala_mark_setup_needed(): void {
+	if ( ! get_option( 'scala_seeded' ) ) {
+		update_option( 'scala_setup_needed', 1 );
+	}
+}
 
 /**
  * Переносить фото теми в медіабібліотеку.
  *
+ * Викликається порціями: WordPress робить із кожного фото девʼять
+ * розмірів, і всі 53 в один запит не влазять. Функція сама пропускає
+ * те, що вже залито, тож її можна безпечно викликати скільки завгодно
+ * разів — вона просто продовжить з того місця, де спинилась.
+ *
+ * @param int   $limit   Скільки нових фото залити за виклик. 0 — усі.
+ * @param float $seconds Скільки секунд на це витратити. 0 — без межі.
  * @return array Мапа «імʼя файлу без розширення» => ID вкладення.
  */
-function scala_import_bundled_images(): array {
-	$dir = SCALA_DIR . '/assets/img';
+function scala_import_bundled_images( int $limit = 0, float $seconds = 0 ): array {
+	$dir      = SCALA_DIR . '/assets/img';
+	$imported = 0;
+	$started  = microtime( true );
 
 	if ( ! is_dir( $dir ) ) {
 		return array();
@@ -266,6 +304,21 @@ function scala_import_bundled_images(): array {
 			continue;
 		}
 
+		/*
+		 * Порція скінчилася — решту заллє наступний запит.
+		 *
+		 * Обмежень два: за кількістю і за часом. Час важливіший:
+		 * скільки саме фото встигне повільний сервер, наперед не знає
+		 * ніхто, а обірватися на середині він не має права.
+		 */
+		if ( $limit > 0 && $imported >= $limit ) {
+			continue;
+		}
+
+		if ( $seconds > 0 && $imported > 0 && ( microtime( true ) - $started ) > $seconds ) {
+			continue;
+		}
+
 		$tmp = wp_tempnam( $file );
 
 		if ( ! $tmp || ! copy( $file, $tmp ) ) {
@@ -286,11 +339,28 @@ function scala_import_bundled_images(): array {
 			if ( file_exists( $tmp ) ) {
 				wp_delete_file( $tmp );
 			}
+
+			/*
+			 * Помилку записуємо, а не ковтаємо. Раніше вона просто
+			 * зникала, і коли наповнення не спрацювало, причину
+			 * не було де взяти.
+			 */
+			update_option(
+				'scala_setup_error',
+				sprintf(
+					/* translators: 1: назва файлу, 2: текст помилки */
+					__( 'Не вдалося залити %1$s: %2$s', 'scala' ),
+					$name . '.webp',
+					$attachment_id->get_error_message()
+				)
+			);
+
 			continue;
 		}
 
 		update_post_meta( $attachment_id, '_wp_attachment_image_alt', scala_image_alt_for( $name ) );
 		$map[ $name ] = (int) $attachment_id;
+		++$imported;
 	}
 
 	return $map;
