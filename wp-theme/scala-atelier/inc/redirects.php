@@ -35,6 +35,7 @@ function scala_redirect_map(): array {
 		'poshyttya-ta-montazh-pid-klyuch' => 'pro-brend',
 		'spivpraczya-dlya-dyzajneriv'     => 'pro-brend',
 		'sample-page'                     => '',
+		'golovna'                         => '', // стара головна; нова — holovna
 
 		/* ---- Комерційні сторінки, які лежали в блозі ---------------- */
 		'avstrijski-shtory' => 'vydy-shtor/avstrijski-shtory',
