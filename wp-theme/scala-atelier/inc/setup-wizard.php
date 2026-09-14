@@ -78,12 +78,32 @@ function scala_heal_empty_options(): void {
 	}
 
 	$opts = get_option( SCALA_OPT_KEY, array() );
+	$opts = is_array( $opts ) ? $opts : array();
 
-	if ( is_array( $opts ) && ! empty( $opts ) ) {
+	/*
+	 * Ознака — не «масив порожній», а «бракує ядра»: гасла й фото
+	 * головної. Порожнім масив буває недовго: щойно хтось збереже
+	 * одну вкладку, в ньому зʼявиться десяток ключів, і перевірка
+	 * на порожність замовкне, хоч головна так і стоїть без hero.
+	 */
+	if ( ! empty( $opts['slogan'] ) && ! empty( $opts['room_image'] ) ) {
 		return;
 	}
 
+	// Те, що вже вписали руками, має пережити дописування.
+	$typed = array_filter(
+		$opts,
+		static function ( $v ) {
+			return ! ( '' === $v || null === $v || array() === $v || 0 === $v );
+		}
+	);
+
 	scala_seed_options( scala_import_bundled_images() );
+
+	if ( $typed ) {
+		$seeded = get_option( SCALA_OPT_KEY, array() );
+		update_option( SCALA_OPT_KEY, array_merge( is_array( $seeded ) ? $seeded : array(), $typed ) );
+	}
 }
 add_action( 'init', 'scala_heal_empty_options', 30 );
 

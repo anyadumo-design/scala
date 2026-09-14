@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCALA_VERSION', '1.10.0' );
+define( 'SCALA_VERSION', '1.11.0' );
 define( 'SCALA_DIR', get_template_directory() );
 define( 'SCALA_URI', get_template_directory_uri() );
 
@@ -32,4 +32,3 @@ require_once SCALA_DIR . '/inc/seed-content.php';
 require_once SCALA_DIR . '/inc/seed-types.php';
 require_once SCALA_DIR . '/inc/seed-posts.php';
 require_once SCALA_DIR . '/inc/defaults.php';
-require_once SCALA_DIR . '/inc/diagnose.php';
