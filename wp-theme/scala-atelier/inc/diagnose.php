@@ -51,6 +51,27 @@ function scala_diagnose(): void {
 	$out[] = 'types=' . wp_count_posts( 'scala_type' )->publish;
 	$out[] = 'attachments=' . wp_count_posts( 'attachment' )->inherit;
 
+	$index = scala_bundled_index( true );
+	$names = scala_bundled_names();
+	$found = array();
+	$miss  = array();
+	$dupes = 0;
+
+	foreach ( $names as $n ) {
+		if ( empty( $index[ $n ] ) ) {
+			$miss[] = $n;
+		} else {
+			$found[] = $n . ':' . count( $index[ $n ] );
+			$dupes  += count( $index[ $n ] ) - 1;
+		}
+	}
+
+	$out[] = 'images_total=' . count( $names );
+	$out[] = 'images_found=' . count( $found );
+	$out[] = 'images_missing=' . ( $miss ? implode( ',', $miss ) : 'немає' );
+	$out[] = 'images_extra_copies=' . $dupes;
+	$out[] = 'images_index=' . implode( ' ', $found );
+
 	// Сам механізм поломки: чи перехоплені загальні права як мета-права.
 	global $post_type_meta_caps;
 	foreach ( array( 'edit_theme_options', 'manage_options' ) as $cap ) {

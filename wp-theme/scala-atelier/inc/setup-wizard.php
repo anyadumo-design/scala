@@ -54,13 +54,9 @@ function scala_bundled_names(): array {
  * @return int
  */
 function scala_images_done(): int {
-	global $wpdb;
-
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- лічильник на екрані наповнення.
-	return (int) $wpdb->get_var(
-		"SELECT COUNT( DISTINCT meta_value ) FROM {$wpdb->postmeta}
-		 WHERE meta_key = '_scala_bundled'"
-	);
+	// Завжди свіжий індекс: викликається до і після порції, і між ними
+	// щось залилося.
+	return count( array_filter( scala_bundled_index( true ) ) );
 }
 
 /**
@@ -300,26 +296,11 @@ function scala_render_setup_block(): void {
  * @return int
  */
 function scala_count_duplicate_images(): int {
-	global $wpdb;
-
 	$extra = 0;
 
-	foreach ( scala_bundled_names() as $name ) {
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery -- екран наповнення.
-		$count = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->posts} p
-				 INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_wp_attached_file'
-				 WHERE p.post_type = 'attachment'
-				   AND ( m.meta_value LIKE %s OR m.meta_value LIKE %s )",
-				'%/' . $wpdb->esc_like( $name ) . '.webp',
-				'%/' . $wpdb->esc_like( $name ) . '-%.webp'
-			)
-		);
-		// phpcs:enable
-
-		if ( $count > 1 ) {
-			$extra += $count - 1;
+	foreach ( scala_bundled_index( true ) as $ids ) {
+		if ( count( $ids ) > 1 ) {
+			$extra += count( $ids ) - 1;
 		}
 	}
 
