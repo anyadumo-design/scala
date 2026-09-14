@@ -77,6 +77,71 @@ function scala_images_done(): int {
 }
 
 /**
+ * Знімає брехливий прапорець «наповнено».
+ *
+ * Перша активація впала посеред заливання фото, але прапорець на той
+ * час уже стояв — він писався на початку, а не в кінці. Код я виправив,
+ * а значення лишилось у базі, і воно назавжди блокує наповнення.
+ *
+ * Ознака брехні однозначна: прапорець стоїть, а видів штор нема жодного.
+ * Такого стану після справжнього наповнення не буває.
+ *
+ * @return void
+ */
+function scala_heal_seeded_flag(): void {
+	if ( ! get_option( 'scala_seeded' ) ) {
+		return;
+	}
+
+	$types = wp_count_posts( 'scala_type' );
+
+	if ( isset( $types->publish ) && 0 === (int) $types->publish ) {
+		delete_option( 'scala_seeded' );
+		update_option( 'scala_setup_needed', 1 );
+	}
+}
+add_action( 'admin_init', 'scala_heal_seeded_flag' );
+
+/**
+ * Записує стан меню адмінки, щоб його можна було прочитати ззовні.
+ *
+ * Пункти меню не зʼявляються, хоч функції визначені й гачки навішені.
+ * Отже, щось прибирає їх уже після реєстрації. З адмінки я цього не бачу,
+ * тому тема сама занотовує, що сталося з її меню, а діагностика на
+ * фронті це показує.
+ *
+ * ПРИБРАТИ разом із inc/diagnose.php.
+ *
+ * @return void
+ */
+function scala_record_menu_state(): void {
+	global $submenu, $menu;
+
+	$mine = array();
+
+	foreach ( (array) $menu as $item ) {
+		if ( isset( $item[2] ) && 'scala-settings' === $item[2] ) {
+			$mine[] = 'top:' . $item[1];
+		}
+	}
+
+	foreach ( (array) ( $submenu['scala-settings'] ?? array() ) as $item ) {
+		$mine[] = $item[2] . '(' . $item[1] . ')';
+	}
+
+	update_option(
+		'scala_menu_debug',
+		array(
+			'can_manage' => current_user_can( 'manage_options' ) ? 'так' : 'НІ',
+			'user'       => wp_get_current_user()->user_login,
+			'items'      => $mine ? implode( ' | ', $mine ) : 'ПОРОЖНЬО',
+			'when'       => gmdate( 'H:i:s' ),
+		)
+	);
+}
+add_action( 'admin_menu', 'scala_record_menu_state', 9999 );
+
+/**
  * Стан наповнення для екрана й для AJAX.
  *
  * @return array

@@ -51,6 +51,16 @@ function scala_diagnose(): void {
 	$out[] = 'types=' . wp_count_posts( 'scala_type' )->publish;
 	$out[] = 'attachments=' . wp_count_posts( 'attachment' )->inherit;
 
+	$menu_dbg = get_option( 'scala_menu_debug' );
+
+	if ( is_array( $menu_dbg ) ) {
+		foreach ( $menu_dbg as $k => $v ) {
+			$out[] = 'menu_' . $k . '=' . $v;
+		}
+	} else {
+		$out[] = 'menu=ще не заходили в адмінку';
+	}
+
 	printf( "\n<!-- SCALA-DIAG\n%s\n-->\n", esc_html( implode( "\n", $out ) ) );
 }
 add_action( 'wp_head', 'scala_diagnose', 1 );
