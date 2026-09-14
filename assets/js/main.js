@@ -498,6 +498,14 @@
           form.hidden = true;
           if (box) box.hidden = false;
 
+          /*
+           * Очищаємо поля й повертаємо кнопку. Інакше наступне відкриття
+           * показує форму з попередніми імʼям і номером — виглядає так,
+           * ніби це та сама заявка і другий раз вона не піде.
+           */
+          form.reset();
+          if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Запросити дизайнера'; }
+
           // Подія конверсії — підхоплять GA4 / Meta Pixel через GTM.
           // form_source показує, яка саме кнопка привела заявку.
           if (window.dataLayer) {
