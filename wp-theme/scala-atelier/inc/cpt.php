@@ -160,33 +160,64 @@ function scala_register_post_types(): void {
 			'menu_icon'    => 'dashicons-email-alt',
 			'supports'     => array( 'title' ),
 			/*
-			 * Заявки містять персональні дані клієнтів. З типовими правами
-			 * типу «post» будь-який Редактор бачив би імена й телефони всіх
-			 * звернень і міг їх видаляти. Зводимо всі права до тієї ж
-			 * можливості, що відкриває налаштування теми.
+			 * Заявки містять персональні дані клієнтів, тож права в них
+			 * власні: edit_scala_leads, delete_scala_leads тощо. Типово їх
+			 * не має ніхто — видаємо адміністратору окремо, див.
+			 * scala_grant_lead_caps().
+			 *
+			 * ВАЖЛИВО, і це коштувало дня: тут НЕ МОЖНА мапити edit_post,
+			 * read_post чи delete_post на чуже примітивне право на кшталт
+			 * edit_theme_options або manage_options. WordPress заносить
+			 * таке право в глобальний список мета-прав, і відтоді
+			 * current_user_can( 'edit_theme_options' ) по всьому сайту
+			 * трактується як «редагувати запис» без запису — тобто завжди
+			 * відмова. Зникали пункти меню, чужі плагіни, а здавалося,
+			 * що зламана роль адміністратора.
 			 */
 			'capability_type' => array( 'scala_lead', 'scala_leads' ),
 			'map_meta_cap'    => true,
 			'capabilities'    => array(
-				'create_posts'           => 'do_not_allow',
-				'edit_post'              => 'edit_theme_options',
-				'read_post'              => 'edit_theme_options',
-				'delete_post'            => 'edit_theme_options',
-				'edit_posts'             => 'edit_theme_options',
-				'edit_others_posts'      => 'edit_theme_options',
-				'edit_published_posts'   => 'edit_theme_options',
-				'publish_posts'          => 'edit_theme_options',
-				'read_private_posts'     => 'edit_theme_options',
-				'delete_posts'           => 'edit_theme_options',
-				'delete_others_posts'    => 'edit_theme_options',
-				'delete_published_posts' => 'edit_theme_options',
-				'delete_private_posts'   => 'edit_theme_options',
-				'edit_private_posts'     => 'edit_theme_options',
+				// Заявки приходять з форми, а не створюються руками.
+				'create_posts' => 'do_not_allow',
 			),
 		)
 	);
 }
 add_action( 'init', 'scala_register_post_types' );
+
+/**
+ * Видає адміністратору права на заявки.
+ *
+ * Пише в базу один раз: далі роль уже має edit_scala_leads,
+ * і функція виходить на першій перевірці.
+ *
+ * @return void
+ */
+function scala_grant_lead_caps(): void {
+	$role = get_role( 'administrator' );
+
+	if ( ! $role || $role->has_cap( 'edit_scala_leads' ) ) {
+		return;
+	}
+
+	$caps = array(
+		'edit_scala_leads',
+		'edit_others_scala_leads',
+		'edit_private_scala_leads',
+		'edit_published_scala_leads',
+		'publish_scala_leads',
+		'read_private_scala_leads',
+		'delete_scala_leads',
+		'delete_others_scala_leads',
+		'delete_private_scala_leads',
+		'delete_published_scala_leads',
+	);
+
+	foreach ( $caps as $cap ) {
+		$role->add_cap( $cap );
+	}
+}
+add_action( 'init', 'scala_grant_lead_caps', 20 );
 
 /**
  * Складає підписи типу запису.

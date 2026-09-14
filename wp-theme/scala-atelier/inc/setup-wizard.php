@@ -135,7 +135,7 @@ function scala_record_menu_state(): void {
 	 * саме того права, яке на цьому сайті справді працює.
 	 */
 	$caps = array(
-		'edit_theme_options',
+		'manage_options',
 		'edit_theme_options',
 		'switch_themes',
 		'install_themes',

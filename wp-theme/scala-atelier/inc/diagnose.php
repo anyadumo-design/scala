@@ -51,6 +51,12 @@ function scala_diagnose(): void {
 	$out[] = 'types=' . wp_count_posts( 'scala_type' )->publish;
 	$out[] = 'attachments=' . wp_count_posts( 'attachment' )->inherit;
 
+	// Сам механізм поломки: чи перехоплені загальні права як мета-права.
+	global $post_type_meta_caps;
+	foreach ( array( 'edit_theme_options', 'manage_options' ) as $cap ) {
+		$out[] = 'hijacked_' . $cap . '=' . ( isset( $post_type_meta_caps[ $cap ] ) ? 'ТАК' : 'ні' );
+	}
+
 	$menu_dbg = get_option( 'scala_menu_debug' );
 
 	if ( is_array( $menu_dbg ) ) {
