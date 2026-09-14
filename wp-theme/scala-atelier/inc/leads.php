@@ -51,10 +51,18 @@ function scala_handle_lead(): void {
 		wp_send_json_error( __( 'Вкажіть, будь ласка, номер телефону.', 'scala' ), 400 );
 	}
 
-	// Мінімальна перевірка: у номері має бути хоча б 9 цифр.
-	if ( strlen( preg_replace( '~\D~', '', $phone ) ) < 9 ) {
-		wp_send_json_error( __( 'Схоже, у номері помилка. Перевірте, будь ласка.', 'scala' ), 400 );
+	/*
+	 * Зводимо номер до одного вигляду: +38 (0XX) XXX-XX-XX.
+	 * Маска на сайті це вже робить, але форма має працювати й без
+	 * скриптів, а в адмінці й у листі номери мають виглядати однаково.
+	 */
+	$normalized = scala_normalize_phone( $phone );
+
+	if ( '' === $normalized ) {
+		wp_send_json_error( __( 'Схоже, у номері помилка: після +38 0 має бути дев\'ять цифр.', 'scala' ), 400 );
 	}
+
+	$phone = $normalized;
 
 	set_transient( $key, $hits + 1, 10 * MINUTE_IN_SECONDS );
 
@@ -100,6 +108,39 @@ function scala_handle_lead(): void {
 }
 add_action( 'wp_ajax_scala_lead', 'scala_handle_lead' );
 add_action( 'wp_ajax_nopriv_scala_lead', 'scala_handle_lead' );
+
+/**
+ * Зводить український номер до вигляду +38 (0XX) XXX-XX-XX.
+ *
+ * Приймає 0971233330, 380971233330, +38 097 123 33 30 і подібне.
+ * Повертає порожній рядок, якщо після коду не набирається девʼять цифр.
+ *
+ * @param string $raw Що ввели.
+ * @return string
+ */
+function scala_normalize_phone( string $raw ): string {
+	$d = preg_replace( '~\D~', '', $raw );
+
+	if ( str_starts_with( $d, '380' ) ) {
+		$d = substr( $d, 3 );
+	} elseif ( str_starts_with( $d, '38' ) && strlen( $d ) >= 11 ) {
+		$d = substr( $d, 2 );
+	} elseif ( str_starts_with( $d, '0' ) ) {
+		$d = substr( $d, 1 );
+	}
+
+	if ( 9 !== strlen( $d ) ) {
+		return '';
+	}
+
+	return sprintf(
+		'+38 (0%s) %s-%s-%s',
+		substr( $d, 0, 2 ),
+		substr( $d, 2, 3 ),
+		substr( $d, 5, 2 ),
+		substr( $d, 7, 2 )
+	);
+}
 
 /**
  * Надсилає лист про нову заявку.

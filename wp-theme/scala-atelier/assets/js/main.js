@@ -406,6 +406,58 @@
   }
 
   /* ------------------------------------------------------------------------
+     7b. Маска номера телефону: +38 (0XX) XXX-XX-XX
+
+     Людина набирає лише дев'ять цифр після коду, решту домальовуємо.
+     Вставлений номер у будь-якому вигляді — 0971233330, 380971233330,
+     +38 097 123 33 30 — зводиться до тих самих дев'яти.
+     ------------------------------------------------------------------------ */
+  var PHONE_PREFIX = '+38 (0';
+
+  function phoneDigits(value) {
+    var d = String(value || '').replace(/\D/g, '');
+    if (d.indexOf('380') === 0) d = d.slice(3);
+    else if (d.indexOf('38') === 0 && d.length >= 11) d = d.slice(2);
+    else if (d.indexOf('0') === 0) d = d.slice(1);
+    return d.slice(0, 9);
+  }
+
+  function phoneFormat(digits) {
+    var n = digits;
+    if (!n.length) return '';
+    var out = PHONE_PREFIX + n.slice(0, 2);
+    if (n.length > 2) out += ') ' + n.slice(2, 5);
+    if (n.length > 5) out += '-' + n.slice(5, 7);
+    if (n.length > 7) out += '-' + n.slice(7, 9);
+    return out;
+  }
+
+  function initPhoneMask() {
+    $$('form[data-lead-form] input[type="tel"]').forEach(function (input) {
+      input.setAttribute('inputmode', 'tel');
+      input.setAttribute('placeholder', '+38 (0__) ___-__-__');
+      input.setAttribute('maxlength', '19');
+
+      function apply() {
+        var digits = phoneDigits(input.value);
+        input.value = digits.length ? phoneFormat(digits) : (document.activeElement === input ? PHONE_PREFIX : '');
+        // Курсор — у кінець: для маски це передбачуваніше за спроби його зберегти.
+        var end = input.value.length;
+        try { input.setSelectionRange(end, end); } catch (e) {}
+      }
+
+      input.addEventListener('focus', function () {
+        if (!input.value) input.value = PHONE_PREFIX;
+      });
+      input.addEventListener('input', apply);
+      input.addEventListener('paste', function () { setTimeout(apply, 0); });
+      input.addEventListener('blur', function () {
+        if (!phoneDigits(input.value).length) input.value = '';
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------------
      8. Форма заявки
      ------------------------------------------------------------------------ */
   function initForms() {
@@ -423,6 +475,13 @@
 
         if (!phone) {
           if (err) err.textContent = 'Вкажіть, будь ласка, номер телефону.';
+          return;
+        }
+
+        if (phoneDigits(phone).length < 9) {
+          if (err) err.textContent = 'У номері має бути дев\'ять цифр після +38 0.';
+          var tel = $('input[type="tel"]', form);
+          if (tel) tel.focus();
           return;
         }
 
@@ -615,6 +674,7 @@
     initScenarios();
     initCatalogFilter();
     initForms();
+    initPhoneMask();
     initLightbox();
   }
 

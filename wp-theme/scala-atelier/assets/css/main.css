@@ -796,6 +796,9 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 }
 
 .form { display: grid; gap: 8px; margin-top: 22px; max-width: 470px; }
+/* display: grid перебиває [hidden] з таблиці браузера: після «Заявку
+   прийнято» форма з кнопкою «Надсилаємо…» лишалась на екрані. */
+.form[hidden] { display: none; }
 .form input,
 .form select,
 .form textarea {

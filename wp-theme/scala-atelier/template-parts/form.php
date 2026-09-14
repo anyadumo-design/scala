@@ -27,8 +27,8 @@ $scala_id = static fn( string $name ): string => $scala_prefix . '-' . $name;
 		placeholder="<?php esc_attr_e( 'Імʼя (необовʼязково)', 'scala' ); ?>" />
 
 	<label class="visually-hidden" for="<?php echo esc_attr( $scala_id( 'phone' ) ); ?>"><?php esc_html_e( 'Телефон', 'scala' ); ?></label>
-	<input id="<?php echo esc_attr( $scala_id( 'phone' ) ); ?>" name="phone" type="tel" required autocomplete="tel"
-		placeholder="<?php esc_attr_e( 'Телефон *', 'scala' ); ?>" />
+	<input id="<?php echo esc_attr( $scala_id( 'phone' ) ); ?>" name="phone" type="tel" required autocomplete="tel" inputmode="tel"
+		placeholder="+38 (0__) ___-__-__" />
 
 	<?php if ( $scala_needs ) : ?>
 		<label class="visually-hidden" for="<?php echo esc_attr( $scala_id( 'need' ) ); ?>"><?php esc_html_e( 'Що потрібно оформити', 'scala' ); ?></label>
