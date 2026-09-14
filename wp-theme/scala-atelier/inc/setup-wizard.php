@@ -60,6 +60,34 @@ function scala_images_done(): int {
 }
 
 /**
+ * Дописує налаштування, якщо наповнення пройшло, а вони порожні.
+ *
+ * Так сталося через фільтр очищення, який викидав програмний запис.
+ * Ознака однозначна: контент створено, а масив налаштувань порожній —
+ * після справжнього наповнення такого не буває. Чужі правки не чіпає:
+ * якщо в налаштуваннях є хоч щось, нічого не робить.
+ *
+ * На init, а не admin_init: щоб спрацювало з першого ж запиту, без
+ * заходу в адмінку. Ціна — одне читання опції на запит.
+ *
+ * @return void
+ */
+function scala_heal_empty_options(): void {
+	if ( ! get_option( 'scala_seeded' ) ) {
+		return;
+	}
+
+	$opts = get_option( SCALA_OPT_KEY, array() );
+
+	if ( is_array( $opts ) && ! empty( $opts ) ) {
+		return;
+	}
+
+	scala_seed_options( scala_import_bundled_images() );
+}
+add_action( 'init', 'scala_heal_empty_options', 30 );
+
+/**
  * Стан наповнення для екрана й для AJAX.
  *
  * @return array

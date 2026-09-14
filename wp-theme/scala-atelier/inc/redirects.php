@@ -123,4 +123,9 @@ function scala_do_redirect(): void {
 	wp_safe_redirect( home_url( user_trailingslashit( $target ) ), 301 );
 	exit;
 }
-add_action( 'template_redirect', 'scala_do_redirect' );
+/*
+ * Пріоритет 1: ядро на template_redirect саме «вгадує» адресу для 404
+ * за першими літерами, і /ru/ відлітав на rulonni-shtory раніше,
+ * ніж ми встигали сказати, куди насправді.
+ */
+add_action( 'template_redirect', 'scala_do_redirect', 1 );
