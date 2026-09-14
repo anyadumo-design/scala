@@ -135,7 +135,7 @@ function scala_record_menu_state(): void {
 	 * саме того права, яке на цьому сайті справді працює.
 	 */
 	$caps = array(
-		'manage_options',
+		'edit_theme_options',
 		'edit_theme_options',
 		'switch_themes',
 		'install_themes',
@@ -191,7 +191,7 @@ function scala_setup_state(): array {
  * @return void
  */
 function scala_setup_step(): void {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
 		wp_send_json_error( __( 'Недостатньо прав.', 'scala' ), 403 );
 	}
 
@@ -231,7 +231,7 @@ add_action( 'wp_ajax_scala_setup_step', 'scala_setup_step' );
  * @return void
  */
 function scala_setup_notice(): void {
-	if ( ! get_option( 'scala_setup_needed' ) || ! current_user_can( 'manage_options' ) ) {
+	if ( ! get_option( 'scala_setup_needed' ) || ! current_user_can( 'edit_theme_options' ) ) {
 		return;
 	}
 

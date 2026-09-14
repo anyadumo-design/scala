@@ -172,7 +172,7 @@ function scala_image( $attachment_id, array $args = array() ): void {
 
 	// Порожній слот. Текст підказки бачить лише редактор у режимі
 	// перегляду сайту, у DOM він не потрапляє як контент сторінки.
-	if ( $args['placeholder'] && current_user_can( 'manage_options' ) ) {
+	if ( $args['placeholder'] && current_user_can( 'edit_theme_options' ) ) {
 		printf(
 			'<div class="slot-empty" aria-hidden="true">%s</div>',
 			esc_html( $args['placeholder'] )
