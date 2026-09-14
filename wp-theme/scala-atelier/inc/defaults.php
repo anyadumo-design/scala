@@ -250,6 +250,105 @@ function scala_mark_setup_needed(): void {
 }
 
 /**
+ * Знаходить уже залите фото з комплекту.
+ *
+ * Шукає спершу за власною позначкою _scala_bundled, а якщо її немає —
+ * за назвою файлу на диску. Друге потрібне, щоб підхопити те, що
+ * залилося до появи позначки: WordPress до файлів-тезок додає -1, -2,
+ * тож ловимо і їх.
+ *
+ * Знайдене одразу позначаємо, щоб наступного разу шукати швидко.
+ *
+ * @param string $name Імʼя файлу без розширення.
+ * @return int ID вкладення або 0.
+ */
+function scala_find_bundled( string $name ): int {
+	global $wpdb;
+
+	$marked = get_posts(
+		array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'meta_key'       => '_scala_bundled', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_value'     => $name,            // phpcs:ignore WordPress.DB.SlowDBQuery
+			'lang'           => '',               // Polylang: шукати в усіх мовах.
+		)
+	);
+
+	if ( $marked ) {
+		return (int) $marked[0];
+	}
+
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery -- разова звірка при наповненні.
+	$id = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT p.ID FROM {$wpdb->posts} p
+			 INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_wp_attached_file'
+			 WHERE p.post_type = 'attachment'
+			   AND ( m.meta_value LIKE %s OR m.meta_value LIKE %s )
+			 ORDER BY p.ID ASC LIMIT 1",
+			'%/' . $wpdb->esc_like( $name ) . '.webp',
+			'%/' . $wpdb->esc_like( $name ) . '-%.webp'
+		)
+	);
+	// phpcs:enable
+
+	if ( $id ) {
+		update_post_meta( $id, '_scala_bundled', $name );
+	}
+
+	return $id;
+}
+
+/**
+ * Прибирає дублі фото з комплекту.
+ *
+ * Лишає найстаріше вкладення на кожну назву, решту видаляє разом
+ * з файлами. Дублі зʼявились через помилку в перевірці «чи вже
+ * залито»: ті самі файли заливались по колу.
+ *
+ * @return int Скільки видалено.
+ */
+function scala_delete_duplicate_images(): int {
+	global $wpdb;
+
+	$removed = 0;
+
+	foreach ( scala_bundled_names() as $name ) {
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery -- разове прибирання.
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT p.ID FROM {$wpdb->posts} p
+				 INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_wp_attached_file'
+				 WHERE p.post_type = 'attachment'
+				   AND ( m.meta_value LIKE %s OR m.meta_value LIKE %s )
+				 ORDER BY p.ID ASC",
+				'%/' . $wpdb->esc_like( $name ) . '.webp',
+				'%/' . $wpdb->esc_like( $name ) . '-%.webp'
+			)
+		);
+		// phpcs:enable
+
+		if ( count( $ids ) < 2 ) {
+			continue;
+		}
+
+		$keep = (int) array_shift( $ids );
+		update_post_meta( $keep, '_scala_bundled', $name );
+
+		foreach ( $ids as $id ) {
+			if ( wp_delete_attachment( (int) $id, true ) ) {
+				++$removed;
+			}
+		}
+	}
+
+	return $removed;
+}
+
+/**
  * Переносить фото теми в медіабібліотеку.
  *
  * Викликається порціями: WordPress робить із кожного фото девʼять
@@ -289,18 +388,10 @@ function scala_import_bundled_images( int $limit = 0, float $seconds = 0 ): arra
 			continue;
 		}
 
-		$existing = get_posts(
-			array(
-				'post_type'      => 'attachment',
-				'post_status'    => 'inherit',
-				'posts_per_page' => 1,
-				'name'           => sanitize_title( $name ),
-				'fields'         => 'ids',
-			)
-		);
+		$existing = scala_find_bundled( $name );
 
 		if ( $existing ) {
-			$map[ $name ] = (int) $existing[0];
+			$map[ $name ] = $existing;
 			continue;
 		}
 
@@ -325,13 +416,20 @@ function scala_import_bundled_images( int $limit = 0, float $seconds = 0 ): arra
 			continue;
 		}
 
+		/*
+		 * Третій аргумент media_handle_sideload — це опис, і він стає
+		 * ЗАГОЛОВКОМ вкладення. Раніше я передавав туди український
+		 * alt, WordPress робив із нього адресу файлу, а перевірка
+		 * «чи вже залито» шукала за англійською назвою — і не знаходила
+		 * ніколи. Через це ті самі 53 фото заливались по колу.
+		 * Опис тепер лишаємо порожнім: заголовок береться з назви файлу.
+		 */
 		$attachment_id = media_handle_sideload(
 			array(
 				'name'     => $name . '.webp',
 				'tmp_name' => $tmp,
 			),
-			0,
-			scala_image_alt_for( $name )
+			0
 		);
 
 		if ( is_wp_error( $attachment_id ) ) {
@@ -359,6 +457,7 @@ function scala_import_bundled_images( int $limit = 0, float $seconds = 0 ): arra
 		}
 
 		update_post_meta( $attachment_id, '_wp_attachment_image_alt', scala_image_alt_for( $name ) );
+		update_post_meta( $attachment_id, '_scala_bundled', $name );
 		$map[ $name ] = (int) $attachment_id;
 		++$imported;
 	}

@@ -56,117 +56,12 @@ function scala_bundled_names(): array {
 function scala_images_done(): int {
 	global $wpdb;
 
-	$names = scala_bundled_names();
-
-	if ( ! $names ) {
-		return 0;
-	}
-
-	$slugs = array_map( 'sanitize_title', $names );
-	$holes = implode( ',', array_fill( 0, count( $slugs ), '%s' ) );
-
-	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- плейсхолдери зібрані вище.
-	$sql = $wpdb->prepare(
-		"SELECT COUNT(*) FROM {$wpdb->posts}
-		 WHERE post_type = 'attachment' AND post_name IN ( $holes )",
-		$slugs
-	);
-
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- разовий підрахунок на екрані налаштування.
-	return (int) $wpdb->get_var( $sql );
-}
-
-/**
- * Знімає брехливий прапорець «наповнено».
- *
- * Перша активація впала посеред заливання фото, але прапорець на той
- * час уже стояв — він писався на початку, а не в кінці. Код я виправив,
- * а значення лишилось у базі, і воно назавжди блокує наповнення.
- *
- * Ознака брехні однозначна: прапорець стоїть, а видів штор нема жодного.
- * Такого стану після справжнього наповнення не буває.
- *
- * @return void
- */
-function scala_heal_seeded_flag(): void {
-	if ( ! get_option( 'scala_seeded' ) ) {
-		return;
-	}
-
-	$types = wp_count_posts( 'scala_type' );
-
-	if ( isset( $types->publish ) && 0 === (int) $types->publish ) {
-		delete_option( 'scala_seeded' );
-		update_option( 'scala_setup_needed', 1 );
-	}
-}
-add_action( 'admin_init', 'scala_heal_seeded_flag' );
-
-/**
- * Записує стан меню адмінки, щоб його можна було прочитати ззовні.
- *
- * Пункти меню не зʼявляються, хоч функції визначені й гачки навішені.
- * Отже, щось прибирає їх уже після реєстрації. З адмінки я цього не бачу,
- * тому тема сама занотовує, що сталося з її меню, а діагностика на
- * фронті це показує.
- *
- * ПРИБРАТИ разом із inc/diagnose.php.
- *
- * @return void
- */
-function scala_record_menu_state(): void {
-	global $submenu, $menu;
-
-	$mine = array();
-
-	foreach ( (array) $menu as $item ) {
-		if ( isset( $item[2] ) && 'scala-settings' === $item[2] ) {
-			$mine[] = 'top:' . $item[1];
-		}
-	}
-
-	foreach ( (array) ( $submenu['scala-settings'] ?? array() ) as $item ) {
-		$mine[] = $item[2] . '(' . $item[1] . ')';
-	}
-
-	/*
-	 * Перелік прав, а не одне: рівно тут ми двічі вгадали неправильно.
-	 * Хай сайт сам скаже, що в нього є, і тоді сторінки теми вимагатимуть
-	 * саме того права, яке на цьому сайті справді працює.
-	 */
-	$caps = array(
-		'manage_options',
-		'edit_theme_options',
-		'switch_themes',
-		'install_themes',
-		'edit_pages',
-		'publish_pages',
-		'list_users',
-		'activate_plugins',
-		'upload_files',
-		'edit_posts',
-	);
-
-	$have = array();
-
-	foreach ( $caps as $cap ) {
-		$have[] = $cap . ( current_user_can( $cap ) ? '+' : '−' );
-	}
-
-	$user = wp_get_current_user();
-
-	update_option(
-		'scala_menu_debug',
-		array(
-			'user'  => $user->user_login,
-			'roles' => implode( ',', (array) $user->roles ),
-			'caps'  => implode( ' ', $have ),
-			'items' => $mine ? implode( ' | ', $mine ) : 'ПОРОЖНЬО',
-			'when'  => gmdate( 'H:i:s' ),
-		)
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- лічильник на екрані наповнення.
+	return (int) $wpdb->get_var(
+		"SELECT COUNT( DISTINCT meta_value ) FROM {$wpdb->postmeta}
+		 WHERE meta_key = '_scala_bundled'"
 	);
 }
-add_action( 'admin_menu', 'scala_record_menu_state', 9999 );
 
 /**
  * Стан наповнення для екрана й для AJAX.
@@ -201,10 +96,24 @@ function scala_setup_step(): void {
 
 	// Спершу фото — порціями.
 	if ( $state['images_done'] < $state['images_total'] ) {
+		$before = $state['images_done'];
+
 		scala_import_bundled_images( SCALA_BATCH, SCALA_SECONDS );
 
 		$state          = scala_setup_state();
 		$state['stage'] = __( 'Переносимо фотографії в медіатеку', 'scala' );
+
+		/*
+		 * Запобіжник. Одного разу перевірка «чи вже залито» не знаходила
+		 * щойно залите, і ті самі фото заливались по колу, поки хтось
+		 * не закрив вкладку. Якщо після порції лічильник не зрушив —
+		 * зупиняємось і кажемо про це, а не крутимось далі.
+		 */
+		if ( $state['images_done'] <= $before ) {
+			$state['stuck']    = true;
+			$state['finished'] = true;
+			$state['stage']    = __( 'Заливання не просувається — зупинено', 'scala' );
+		}
 
 		wp_send_json_success( $state );
 	}
@@ -269,6 +178,33 @@ function scala_render_setup_block(): void {
 		</p></div>
 	<?php endif; ?>
 
+	<?php $scala_dupes = scala_count_duplicate_images(); ?>
+	<?php if ( $scala_dupes ) : ?>
+		<div class="notice notice-warning inline"><p>
+			<?php
+			printf(
+				/* translators: %d — кількість зайвих файлів */
+				esc_html__( 'У медіатеці %d зайвих копій фото з комплекту — наслідок помилки в заливанні. Їх можна прибрати: залишиться по одному файлу на кожне фото.', 'scala' ),
+				(int) $scala_dupes
+			);
+			?>
+		</p>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="scala_clean_dupes" />
+			<?php wp_nonce_field( 'scala_clean_dupes' ); ?>
+			<button type="submit" class="button">
+				<?php
+				printf(
+					/* translators: %d — кількість зайвих файлів */
+					esc_html__( 'Прибрати зайві копії (%d)', 'scala' ),
+					(int) $scala_dupes
+				);
+				?>
+			</button>
+		</form>
+		</div>
+	<?php endif; ?>
+
 	<?php if ( $state['finished'] ) : ?>
 		<p>
 			<?php
@@ -326,6 +262,12 @@ function scala_render_setup_block(): void {
 						var d = res.data;
 						out.textContent = d.stage + ' — ' + d.images_done + ' з ' + d.images_total;
 
+						if ( d.stuck ) {
+							out.textContent = 'Заливання не просувається — зупинив, щоб не плодити копій. Напишіть про це.';
+							btn.disabled = false;
+							return;
+						}
+
 						if ( d.finished ) {
 							out.textContent = 'Готово. Сайт наповнено.';
 							btn.disabled = false;
@@ -351,3 +293,62 @@ function scala_render_setup_block(): void {
 	<?php endif; ?>
 	<?php
 }
+
+/**
+ * Скільки зайвих копій фото з комплекту лежить у медіатеці.
+ *
+ * @return int
+ */
+function scala_count_duplicate_images(): int {
+	global $wpdb;
+
+	$extra = 0;
+
+	foreach ( scala_bundled_names() as $name ) {
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery -- екран наповнення.
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->posts} p
+				 INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_wp_attached_file'
+				 WHERE p.post_type = 'attachment'
+				   AND ( m.meta_value LIKE %s OR m.meta_value LIKE %s )",
+				'%/' . $wpdb->esc_like( $name ) . '.webp',
+				'%/' . $wpdb->esc_like( $name ) . '-%.webp'
+			)
+		);
+		// phpcs:enable
+
+		if ( $count > 1 ) {
+			$extra += $count - 1;
+		}
+	}
+
+	return $extra;
+}
+
+/**
+ * Прибирає зайві копії за кнопкою.
+ *
+ * @return void
+ */
+function scala_handle_clean_dupes(): void {
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
+		wp_die( esc_html__( 'Недостатньо прав.', 'scala' ), '', array( 'response' => 403 ) );
+	}
+
+	check_admin_referer( 'scala_clean_dupes' );
+
+	$removed = scala_delete_duplicate_images();
+
+	wp_safe_redirect(
+		add_query_arg(
+			array(
+				'page'          => 'scala-migrate',
+				'scala_cleaned' => $removed,
+			),
+			admin_url( 'admin.php' )
+		)
+	);
+	exit;
+}
+add_action( 'admin_post_scala_clean_dupes', 'scala_handle_clean_dupes' );
