@@ -223,6 +223,15 @@ function scala_render_options_page(): void {
 			submit_button( __( 'Зберегти', 'scala' ) );
 			?>
 		</form>
+
+		<?php
+		/**
+		 * Блоки під формою вкладки: перевірка Telegram тощо.
+		 *
+		 * @param string $current Ключ вкладки.
+		 */
+		do_action( 'scala_options_after_form', $current );
+		?>
 	</div>
 	<?php
 }

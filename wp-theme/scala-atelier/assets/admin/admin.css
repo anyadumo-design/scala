@@ -160,3 +160,69 @@
 .scala-lead td {
   word-break: break-word;
 }
+
+/* --- Telegram під формою заявки ---------------------------------------- */
+.scala-tgbox {
+  max-width: 860px;
+  margin-top: 32px;
+  padding: 20px 24px 22px;
+  background: #fff;
+  border: 1px solid #c3c4c7;
+  border-left: 4px solid #2271b1;
+}
+
+.scala-tgbox__title {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.scala-tgbox__status {
+  margin: 0 0 14px;
+  color: #50575e;
+  max-width: 70ch;
+}
+
+.scala-tgbox__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.scala-tgbox__found {
+  margin: 0 0 14px;
+}
+
+.scala-tgbox__found td,
+.scala-tgbox__found th {
+  vertical-align: middle;
+}
+
+.scala-tgbox__found form {
+  margin: 0;
+}
+
+.scala-tgbox__current {
+  color: #00a32a;
+  font-weight: 600;
+}
+
+.scala-tgbox__howto summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.scala-tgbox__howto ol {
+  margin: 10px 0 8px 20px;
+  max-width: 70ch;
+}
+
+.scala-tgbox__howto li {
+  margin-bottom: 6px;
+}
+
+.scala-tgbox__howto p {
+  margin: 0;
+  color: #646970;
+  max-width: 70ch;
+}
