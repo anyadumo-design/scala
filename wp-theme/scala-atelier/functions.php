@@ -32,3 +32,4 @@ require_once SCALA_DIR . '/inc/seed-content.php';
 require_once SCALA_DIR . '/inc/seed-types.php';
 require_once SCALA_DIR . '/inc/seed-posts.php';
 require_once SCALA_DIR . '/inc/defaults.php';
+require_once SCALA_DIR . '/inc/diagnose.php';
