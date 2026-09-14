@@ -14,6 +14,7 @@ define( 'SCALA_URI', get_template_directory_uri() );
 /** Ключ опції, у якій лежать усі налаштування теми одним масивом. */
 define( 'SCALA_OPT_KEY', 'scala_options' );
 
+require_once SCALA_DIR . '/inc/compat.php';
 require_once SCALA_DIR . '/inc/helpers.php';
 require_once SCALA_DIR . '/inc/setup.php';
 require_once SCALA_DIR . '/inc/enqueue.php';
