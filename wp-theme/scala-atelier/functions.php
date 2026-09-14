@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCALA_VERSION', '1.1.0' );
+define( 'SCALA_VERSION', '1.2.0' );
 define( 'SCALA_DIR', get_template_directory() );
 define( 'SCALA_URI', get_template_directory_uri() );
 

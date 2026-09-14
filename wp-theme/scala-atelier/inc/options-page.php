@@ -14,13 +14,24 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Пункт меню верхнього рівня + сторінка налаштувань.
  *
+ * Права — manage_options, а не edit_theme_options. Дві причини.
+ *
+ * Формальна: сторінка зберігається через options.php, а той вимагає
+ * саме manage_options незалежно від того, що написано тут. Тобто
+ * edit_theme_options був неузгоджений із самого початку: показати
+ * сторінку міг би той, хто не зможе її зберегти.
+ *
+ * Практична: на сайті клієнта пункти меню з edit_theme_options
+ * не зʼявлялись узагалі, хоч користувач — адміністратор. Щось на
+ * тому сайті це право забирає. З manage_options цієї проблеми немає.
+ *
  * @return void
  */
 function scala_admin_menu(): void {
 	add_menu_page(
 		__( 'SCALA — налаштування сайту', 'scala' ),
 		'SCALA',
-		'edit_theme_options',
+		'manage_options',
 		'scala-settings',
 		'scala_render_options_page',
 		'dashicons-admin-customizer',
@@ -31,7 +42,7 @@ function scala_admin_menu(): void {
 		'scala-settings',
 		__( 'Налаштування сайту', 'scala' ),
 		__( 'Налаштування', 'scala' ),
-		'edit_theme_options',
+		'manage_options',
 		'scala-settings',
 		'scala_render_options_page'
 	);
@@ -99,7 +110,7 @@ function scala_sanitize_options( $input ): array {
  * @return void
  */
 function scala_render_options_page(): void {
-	if ( ! current_user_can( 'edit_theme_options' ) ) {
+	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 

@@ -99,7 +99,7 @@ function scala_setup_state(): array {
  * @return void
  */
 function scala_setup_step(): void {
-	if ( ! current_user_can( 'edit_theme_options' ) ) {
+	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_send_json_error( __( 'Недостатньо прав.', 'scala' ), 403 );
 	}
 
@@ -139,7 +139,7 @@ add_action( 'wp_ajax_scala_setup_step', 'scala_setup_step' );
  * @return void
  */
 function scala_setup_notice(): void {
-	if ( ! get_option( 'scala_setup_needed' ) || ! current_user_can( 'edit_theme_options' ) ) {
+	if ( ! get_option( 'scala_setup_needed' ) || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 

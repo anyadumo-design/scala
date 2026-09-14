@@ -75,7 +75,7 @@ function scala_migrate_menu(): void {
 		'scala-settings',
 		__( 'Переїзд зі старого сайту', 'scala' ),
 		__( 'Переїзд', 'scala' ),
-		'edit_theme_options',
+		'manage_options',
 		'scala-migrate',
 		'scala_render_migrate_page'
 	);
@@ -88,7 +88,7 @@ add_action( 'admin_menu', 'scala_migrate_menu', 11 );
  * @return void
  */
 function scala_handle_migrate(): void {
-	if ( ! current_user_can( 'edit_theme_options' ) ) {
+	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'Недостатньо прав.', 'scala' ) );
 	}
 
