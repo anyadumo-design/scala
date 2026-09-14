@@ -39,6 +39,22 @@ function scala_diagnose(): void {
 
 	$out = array( 'version=' . SCALA_VERSION, 'php=' . PHP_VERSION );
 
+	// Ручний запуск лікування налаштувань: ?scala-diag=1&heal=1
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- діагностика, тимчасово.
+	if ( isset( $_GET['heal'] ) ) {
+		$img = scala_import_bundled_images();
+		scala_seed_options( $img );
+		$out[] = 'heal_ran=так, картинок у мапі: ' . count( $img );
+	}
+
+	$opts   = get_option( SCALA_OPT_KEY, null );
+	$out[]  = 'opts_type=' . gettype( $opts );
+	$out[]  = 'opts_count=' . ( is_array( $opts ) ? count( $opts ) : '—' );
+	$out[]  = 'opts_slogan=' . ( is_array( $opts ) && ! empty( $opts['slogan'] ) ? substr( (string) $opts['slogan'], 0, 40 ) : 'ПОРОЖНЬО' );
+	$out[]  = 'opts_room_image=' . ( is_array( $opts ) ? (int) ( $opts['room_image'] ?? 0 ) : '—' );
+	$out[]  = 'heal_hooked=' . ( has_action( 'init', 'scala_heal_empty_options' ) ?: 'НЕМАЄ' );
+	$out[]  = 'sanitize_filter_on_front=' . ( has_filter( 'sanitize_option_' . SCALA_OPT_KEY ) ? 'так' : 'ні' );
+
 	foreach ( $funcs as $f ) {
 		$out[] = $f . '=' . ( function_exists( $f ) ? 'є' : 'НЕМАЄ' );
 	}
