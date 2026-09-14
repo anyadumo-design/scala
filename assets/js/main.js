@@ -360,6 +360,8 @@
       ev.preventDefault();
       opener = trigger;
 
+      // Джерело — тільки в приховане поле: воно потрібне в адмінці й у листі,
+      // а відвідувачу «Хедер · Головна» ні про що не каже.
       var source = trigger.getAttribute('data-lead-open') || '';
       if (field) field.value = source;
       if (label) label.textContent = source;

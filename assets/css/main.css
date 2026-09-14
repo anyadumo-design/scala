@@ -962,11 +962,6 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   font-size: 15px; line-height: 1.6; color: var(--c-body); margin: 12px 0 0;
 }
 /* Напис про блок, з якого відкрито форму — підказка й клієнту, і нам */
-.modal__source {
-  display: none; margin-top: 14px;
-  font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--c-accent);
-}
 .modal__source:not(:empty) { display: block; }
 
 .modal .form { margin-top: 24px; max-width: none; }
