@@ -130,10 +130,13 @@ function scala_telegram_explain( string $why ): string {
  *
  * @param string $text Повідомлення (Telegram-HTML: лише b, i, a, code).
  * @param string $what Що це було — для рядка статусу в адмінці.
+ * @param string $chat Куди слати; порожньо — у налаштований чат.
  * @return true|WP_Error
  */
-function scala_telegram_send( string $text, string $what ) {
-	$chat = scala_telegram_chat();
+function scala_telegram_send( string $text, string $what, string $chat = '' ) {
+	if ( '' === $chat ) {
+		$chat = scala_telegram_chat();
+	}
 
 	if ( '' === $chat ) {
 		return new WP_Error( 'scala_tg_chat', __( 'Не вказано канал або чат.', 'scala' ) );
@@ -253,20 +256,20 @@ function scala_telegram_guard( string $action ): void {
 }
 
 /**
- * Кнопка «Надіслати тест».
+ * Шле тестове повідомлення і повертає на сторінку з результатом.
  *
+ * @param string $chat Куди; порожньо — у налаштований чат.
  * @return void
  */
-function scala_telegram_action_test(): void {
-	scala_telegram_guard( 'scala_telegram_test' );
-
+function scala_telegram_run_test( string $chat = '' ): void {
 	$site = wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
 
 	$result = scala_telegram_send(
 		/* translators: %s — назва сайту */
 		'<b>' . scala_telegram_esc( sprintf( __( 'Перевірка звʼязку з сайтом %s', 'scala' ), $site ) ) . '</b>' . "\n"
 		. scala_telegram_esc( __( 'Сюди приходитимуть заявки з форми на сайті.', 'scala' ) ),
-		__( 'тест', 'scala' )
+		__( 'тест', 'scala' ),
+		$chat
 	);
 
 	wp_safe_redirect(
@@ -280,6 +283,16 @@ function scala_telegram_action_test(): void {
 		)
 	);
 	exit;
+}
+
+/**
+ * Кнопка «Надіслати тест».
+ *
+ * @return void
+ */
+function scala_telegram_action_test(): void {
+	scala_telegram_guard( 'scala_telegram_test' );
+	scala_telegram_run_test();
 }
 add_action( 'admin_post_scala_telegram_test', 'scala_telegram_action_test' );
 
@@ -372,19 +385,8 @@ function scala_telegram_action_use_chat(): void {
 
 	update_option( SCALA_OPT_KEY, $options );
 
-	// Сюди приходимо з admin-post, а кеш scala_options() уже прочитав старе.
-	add_filter(
-		'option_' . SCALA_OPT_KEY,
-		static function ( $value ) use ( $chat ) {
-			if ( is_array( $value ) ) {
-				$value['telegram_chat'] = $chat;
-			}
-
-			return $value;
-		}
-	);
-
-	scala_telegram_action_test();
+	// Кеш scala_options() уже прочитав старе, тому чат передаємо явно.
+	scala_telegram_run_test( $chat );
 }
 add_action( 'admin_post_scala_telegram_use_chat', 'scala_telegram_action_use_chat' );
 
