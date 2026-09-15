@@ -402,6 +402,110 @@ function scala_description_for( int $post_id ): string {
 }
 
 /**
+ * Заголовок конкретного запису — поза поточним запитом.
+ *
+ * Той самий, що тема віддає в розмітку. Потрібен, щоб покласти його в
+ * поле SEO-плагіна: інакше в редакторі показується заготовка плагіна,
+ * а на сайті стоїть інший рядок, і зрозуміти, що побачить людина в
+ * пошуку, неможливо.
+ *
+ * @param int $post_id ID запису.
+ * @return string
+ */
+function scala_title_for( int $post_id ): string {
+	$site = wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
+	$sep  = ' — ';
+	$type = (string) get_post_type( $post_id );
+	$name = get_the_title( $post_id );
+
+	if ( (int) get_option( 'page_on_front' ) === $post_id ) {
+		$h1 = trim( wp_strip_all_tags( (string) scala_opt( 'h1', '' ) ) );
+
+		return $h1 ? $h1 . $sep . $site : $site;
+	}
+
+	if ( 'scala_type' === $type ) {
+		return trim( $name . ' ' . scala_geo_phrase() ) . $sep . $site;
+	}
+
+	if ( 'scala_project' === $type ) {
+		return $name . $sep . __( 'реалізований проєкт', 'scala' ) . ', ' . $site;
+	}
+
+	if ( 'scala_fabric' === $type ) {
+		return $name . $sep . __( 'тканина для штор', 'scala' ) . ', ' . $site;
+	}
+
+	if ( 'page' === $type ) {
+		$template = (string) get_page_template_slug( $post_id );
+
+		if ( 'template-catalog.php' === $template ) {
+			return trim( $name . ' ' . __( 'тканин і видів штор', 'scala' ) ) . $sep . $site;
+		}
+
+		if ( 'template-contacts.php' === $template ) {
+			$city = trim( wp_strip_all_tags( (string) scala_opt( 'city', '' ) ) );
+
+			return $name . $sep . $site . ( $city ? ', ' . $city : '' );
+		}
+	}
+
+	return $name . $sep . $site;
+}
+
+/**
+ * Ключова фраза сторінки для аналізу в SEO-плагіні.
+ *
+ * Береться із заголовка без хвоста «на замовлення в Києві» й без назви
+ * сайту: у пошуку люди набирають саме ядро фрази. Це відправна точка —
+ * у редакторі її можна замінити на будь-яку іншу.
+ *
+ * @param int $post_id ID запису.
+ * @return string
+ */
+function scala_keyphrase_for( int $post_id ): string {
+	// Головна зветься «Головна» — ключова фраза в неї з H1.
+	if ( (int) get_option( 'page_on_front' ) === $post_id ) {
+		$h1 = trim( wp_strip_all_tags( (string) scala_opt( 'h1', '' ) ) );
+
+		return $h1 ? mb_strtolower( $h1 ) : '';
+	}
+
+	/*
+	 * Де назва на сайті й запит у пошуку розходяться. «Класичні штори»
+	 * ніхто не набирає — набирають «портьєри»; сторінку японських
+	 * панелей шукають як «японські штори».
+	 */
+	$known = array(
+		'portyery'          => 'портьєри на замовлення',
+		'rulonni-shtory'    => 'рулонні штори',
+		'yaponski-paneli'   => 'японські штори',
+		'zhalyuzi'          => 'дерев\'яні жалюзі',
+		'rymski-shtory'     => 'римські штори',
+		'avstrijski-shtory' => 'австрійські штори',
+		'blekaut'           => 'штори блекаут',
+		'tyul'              => 'тюль на замовлення',
+	);
+
+	$slug = (string) get_post_field( 'post_name', $post_id );
+
+	if ( isset( $known[ $slug ] ) ) {
+		return $known[ $slug ];
+	}
+
+	if ( 'template-catalog.php' === (string) get_page_template_slug( $post_id ) ) {
+		return __( 'каталог тканин для штор', 'scala' );
+	}
+
+	$name = wp_strip_all_tags( get_the_title( $post_id ) );
+	$name = preg_replace( '~\s*(на замовлення|під ключ)?\s*(в|у)\s+Києві\s*$~ui', '', $name );
+	$name = preg_replace( '~\s*[—–-]\s*' . preg_quote( (string) get_bloginfo( 'name' ), '~' ) . '\s*$~ui', '', (string) $name );
+	$name = trim( (string) $name, " \t\n—–-:,." );
+
+	return mb_strtolower( $name );
+}
+
+/**
  * Ріже текст під сніпет: по межі слова, без обірваних слів.
  *
  * @param string $text Сирий текст, можливо з тегами.

@@ -121,7 +121,7 @@ function scala_fill_seo_fields(): void {
 
 	$ids = get_posts(
 		array(
-			'post_type'        => array( 'post', 'page', 'scala_type' ),
+			'post_type'        => array( 'post', 'page', 'scala_type', 'scala_project', 'scala_fabric' ),
 			'post_status'      => 'publish',
 			'posts_per_page'   => 200,
 			'fields'           => 'ids',
@@ -130,14 +130,28 @@ function scala_fill_seo_fields(): void {
 	);
 
 	foreach ( $ids as $id ) {
-		if ( '' !== trim( (string) get_post_meta( $id, '_yoast_wpseo_metadesc', true ) ) ) {
-			continue;
-		}
+		$id = (int) $id;
 
-		$text = scala_description_for( (int) $id );
+		/*
+		 * Три поля, які плагін очікує від людини. Заповнюємо лише
+		 * порожні: те, що вписали руками, важливіше за наш здогад.
+		 */
+		$fields = array(
+			'_yoast_wpseo_title'    => scala_title_for( $id ),
+			'_yoast_wpseo_metadesc' => scala_description_for( $id ),
+			'_yoast_wpseo_focuskw'  => scala_keyphrase_for( $id ),
+		);
 
-		if ( '' !== $text ) {
-			update_post_meta( $id, '_yoast_wpseo_metadesc', $text );
+		foreach ( $fields as $key => $value ) {
+			if ( '' === $value ) {
+				continue;
+			}
+
+			if ( '' !== trim( (string) get_post_meta( $id, $key, true ) ) ) {
+				continue;
+			}
+
+			update_post_meta( $id, $key, $value );
 		}
 	}
 }
