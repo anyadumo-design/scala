@@ -36,6 +36,22 @@ get_header();
 			<?php endforeach; ?>
 		</p>
 	<?php endif; ?>
+
+	<?php
+	$scala_cornice = is_post_type_archive( 'scala_type' ) && function_exists( 'scala_cornice_links' )
+		? scala_cornice_links()
+		: array();
+	?>
+
+	<?php if ( $scala_cornice ) : ?>
+		<p class="lead" style="margin-top:10px">
+			<?php esc_html_e( 'Про карнизи:', 'scala' ); ?>
+			<?php foreach ( $scala_cornice as $scala_i => $scala_art ) : ?>
+				<?php echo $scala_i ? ' · ' : ' '; ?>
+				<a href="<?php echo esc_url( $scala_art['url'] ); ?>"><?php echo esc_html( $scala_art['title'] ); ?></a>
+			<?php endforeach; ?>
+		</p>
+	<?php endif; ?>
 </section>
 
 <section class="section" style="padding-top:28px">

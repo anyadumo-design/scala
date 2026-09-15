@@ -798,11 +798,18 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 .prose p {
   font-size: 16px; line-height: 1.7; color: var(--c-body); margin: 0;
 }
+/* H2 всередині текстового блоку. Раніше тут був тільки H3: вміст
+   писали короткими блоками. Довгий текст сторінки ділиться на розділи,
+   і без цього правила його заголовки беруть типографіку браузера. */
+.prose h2 {
+  font-size: clamp(21px, 2.1vw, 27px); line-height: 1.2; letter-spacing: -.025em;
+  font-weight: 600; color: var(--c-ink); margin: 34px 0 0; text-wrap: balance;
+}
 .prose h3 {
   font-size: 20px; line-height: 1.25; letter-spacing: -.02em; font-weight: 600;
   color: var(--c-ink); margin: 34px 0 0;
 }
-.prose h3:first-child { margin-top: 0; }
+.prose h2:first-child, .prose h3:first-child { margin-top: 0; }
 .prose strong { color: var(--c-ink); font-weight: 600; }
 .prose a { color: var(--c-accent); border-bottom: 1px solid rgba(140, 106, 58, .35); }
 .prose a:hover { border-bottom-color: var(--c-accent); }

@@ -488,6 +488,18 @@ function scala_title_for( int $post_id ): string {
 		return $h1 ? $h1 . $sep . $site : $site;
 	}
 
+	/*
+	 * Заготовка може оголосити власний заголовок для пошуку. Потрібно
+	 * там, де назва на сторінці й запит у пошуку розходяться: стаття
+	 * зветься «Як правильно вибрати карниз», а шукають «як вибрати
+	 * карниз». Заголовок на самій сторінці лишається незмінним.
+	 */
+	$seeded = scala_guide_seo_title( $post_id );
+
+	if ( '' !== $seeded ) {
+		return $seeded;
+	}
+
 	if ( 'scala_type' === $type ) {
 		return trim( $name . ' ' . scala_geo_phrase() ) . $sep . $site;
 	}
@@ -515,6 +527,28 @@ function scala_title_for( int $post_id ): string {
 	}
 
 	return $name . $sep . $site;
+}
+
+/**
+ * Заголовок для пошуку, оголошений у заготовці.
+ *
+ * @param int $post_id ID запису.
+ * @return string
+ */
+function scala_guide_seo_title( int $post_id ): string {
+	if ( ! function_exists( 'scala_guide_seed_data' ) ) {
+		return '';
+	}
+
+	$slug = (string) get_post_field( 'post_name', $post_id );
+
+	foreach ( scala_guide_seed_data() as $guide ) {
+		if ( $slug === ( $guide['slug'] ?? '' ) ) {
+			return (string) ( $guide['seo_title'] ?? '' );
+		}
+	}
+
+	return '';
 }
 
 /**

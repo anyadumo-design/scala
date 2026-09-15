@@ -239,6 +239,18 @@ while ( have_posts() ) :
 					<?php endforeach; ?>
 				</p>
 			<?php endif; ?>
+
+			<?php $scala_cornice = function_exists( 'scala_cornice_links' ) ? scala_cornice_links() : array(); ?>
+
+			<?php if ( $scala_cornice ) : ?>
+				<p class="lead" style="margin-top:8px">
+					<?php esc_html_e( 'Про карнизи:', 'scala' ); ?>
+					<?php foreach ( $scala_cornice as $scala_i => $scala_art ) : ?>
+						<?php echo $scala_i ? ' · ' : ' '; ?>
+						<a href="<?php echo esc_url( $scala_art['url'] ); ?>"><?php echo esc_html( $scala_art['title'] ); ?></a>
+					<?php endforeach; ?>
+				</p>
+			<?php endif; ?>
 		</section>
 	<?php endif; ?>
 

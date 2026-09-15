@@ -190,8 +190,20 @@ function scala_insert_missing_guides(): array {
 			 */
 			$legacy = '' === $source && '' !== $stored;
 
+			/*
+			 * Матеріал існував ще до заготовки: або його переносили з
+			 * чинного сайту, або сторінку писав клієнт. Відбитка в нього
+			 * немає жодного, тож звичайне правило вважало б його
+			 * відредагованим і не чіпало б ніколи. Заготовка може
+			 * попросити взяти такий текст під себе — рівно один раз:
+			 * після першого запису відбиток зʼявляється, і далі діє
+			 * звичайне правило. Попередній текст лишається у ревізіях
+			 * WordPress, тож повернути його можна з редактора.
+			 */
+			$adopt = ! empty( $guide['adopt'] ) && '' === $stored && '' === $source;
+
 			// Текст редагували — лишаємо як є: правка людини важливіша.
-			if ( $current !== $stored && ! $known && ! $legacy ) {
+			if ( $current !== $stored && ! $known && ! $legacy && ! $adopt ) {
 				$skipped[] = $title;
 				continue;
 			}
@@ -219,6 +231,16 @@ function scala_insert_missing_guides(): array {
 			}
 
 			$fields['ID'] = $post_id;
+
+			/*
+			 * Перед тим як переписати чужий текст, зберігаємо ревізію
+			 * з тим, що лежить зараз. Інакше повернути попередній
+			 * варіант із редактора не було б з чого: WordPress пише
+			 * ревізію вже після оновлення, тобто з новим вмістом.
+			 */
+			if ( $adopt ) {
+				wp_save_post_revision( $post_id );
+			}
 
 			scala_write_guide( $fields );
 			scala_remember_guide( $post_id, $content );
@@ -318,7 +340,58 @@ function scala_guide_link( string $slug = 'yaki-shtory-obraty' ): ?array {
  *
  * @return array Список масивів url і title.
  */
-function scala_room_links(): array {
+function scala_room_links( int $exclude = 0 ): array {
+	static $cache = null;
+
+	if ( null === $cache ) {
+		$cache = array();
+
+		foreach ( scala_guide_seed_data() as $guide ) {
+			if ( 'page' !== ( $guide['type'] ?? 'post' ) ) {
+				continue;
+			}
+
+			$page = get_page_by_path( (string) ( $guide['slug'] ?? '' ) );
+
+			if ( ! $page instanceof WP_Post || 'publish' !== $page->post_status ) {
+				continue;
+			}
+
+			$cache[] = array(
+				'id'  => (int) $page->ID,
+				'url' => (string) get_permalink( $page ),
+				// Коротка назва для рядка посилань: у заголовку сторінки
+				// повна фраза з містом, у рядку вона зайва.
+				'title' => (string) ( $guide['label'] ?? get_the_title( $page ) ),
+			);
+		}
+	}
+
+	if ( ! $exclude ) {
+		return $cache;
+	}
+
+	// Сторінка кімнати не посилається сама на себе.
+	return array_values(
+		array_filter(
+			$cache,
+			static function ( array $room ) use ( $exclude ): bool {
+				return $exclude !== (int) $room['id'];
+			}
+		)
+	);
+}
+
+/**
+ * Статті про карнизи.
+ *
+ * Карниз потрібен будь-якій конструкції, тож ці два матеріали доречні
+ * на кожній сторінці виду штор. Досі зі сторінок типів у журнал вів
+ * лише один матеріал — порівняння видів.
+ *
+ * @return array Список масивів url і title.
+ */
+function scala_cornice_links(): array {
 	static $cache = null;
 
 	if ( null !== $cache ) {
@@ -328,22 +401,22 @@ function scala_room_links(): array {
 	$cache = array();
 
 	foreach ( scala_guide_seed_data() as $guide ) {
-		if ( 'page' !== ( $guide['type'] ?? 'post' ) ) {
+		if ( empty( $guide['cornice'] ) ) {
 			continue;
 		}
 
-		$page = get_page_by_path( (string) ( $guide['slug'] ?? '' ) );
+		$link = scala_guide_link( (string) ( $guide['slug'] ?? '' ) );
 
-		if ( ! $page instanceof WP_Post || 'publish' !== $page->post_status ) {
+		if ( ! $link ) {
 			continue;
 		}
 
-		$cache[] = array(
-			'url' => (string) get_permalink( $page ),
-			// Коротка назва для рядка посилань: у заголовку сторінки
-			// повна фраза з містом, у рядку вона зайва.
-			'title' => (string) ( $guide['label'] ?? get_the_title( $page ) ),
-		);
+		// Заголовок статті задовгий для рядка посилань — беремо мітку.
+		if ( ! empty( $guide['label'] ) ) {
+			$link['title'] = (string) $guide['label'];
+		}
+
+		$cache[] = $link;
 	}
 
 	return $cache;
