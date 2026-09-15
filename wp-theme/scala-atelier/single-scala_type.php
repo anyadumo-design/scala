@@ -187,6 +187,23 @@ while ( have_posts() ) :
 					<a href="<?php echo esc_url( $scala_guide['url'] ); ?>"><?php echo esc_html( $scala_guide['title'] ); ?></a>
 				</p>
 			<?php endif; ?>
+
+			<?php
+			// Звʼязок був односторонній: кімнати вели сюди, а звідси —
+			// нікуди. Людина, яка прийшла за конструкцією, часто
+			// вирішує все одно «в яку кімнату».
+			$scala_rooms = scala_room_links();
+			?>
+
+			<?php if ( $scala_rooms ) : ?>
+				<p class="lead" style="margin-top:8px">
+					<?php esc_html_e( 'За кімнатами:', 'scala' ); ?>
+					<?php foreach ( $scala_rooms as $scala_i => $scala_room ) : ?>
+						<?php echo $scala_i ? ' · ' : ' '; ?>
+						<a href="<?php echo esc_url( $scala_room['url'] ); ?>"><?php echo esc_html( $scala_room['title'] ); ?></a>
+					<?php endforeach; ?>
+				</p>
+			<?php endif; ?>
 		</section>
 	<?php endif; ?>
 
