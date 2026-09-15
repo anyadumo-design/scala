@@ -221,6 +221,21 @@ function scala_meta_description(): string {
 		return scala_trim_text( scala_types_summary() );
 	}
 
+	if ( is_post_type_archive( 'scala_project' ) ) {
+		return scala_trim_text( scala_archive_summary( 'scala_project', __( 'Реалізовані проєкти SCALA', 'scala' ) ) );
+	}
+
+	if ( is_post_type_archive( 'scala_fabric' ) ) {
+		return scala_trim_text( scala_archive_summary( 'scala_fabric', __( 'Тканини, з якими працюємо', 'scala' ) ) );
+	}
+
+	if ( is_home() ) {
+		$blog_id = (int) get_option( 'page_for_posts' );
+		$text    = $blog_id ? (string) get_post_field( 'post_excerpt', $blog_id ) : '';
+
+		return scala_trim_text( $text ?: __( 'Матеріали про вибір штор: види конструкцій, тканини, заміри й догляд.', 'scala' ) );
+	}
+
 	if ( is_singular( 'scala_type' ) ) {
 		$id   = get_queried_object_id();
 		$text = (string) scala_meta( $id, 'lead', '' );
@@ -305,6 +320,29 @@ function scala_is_thin( int $post_id ): bool {
 	$text = $text ?: (string) get_post_field( 'post_content', $post_id );
 
 	return mb_strlen( trim( wp_strip_all_tags( $text ) ) ) < 80;
+}
+
+/**
+ * Опис архіву з назв того, що в ньому лежить.
+ *
+ * @param string $post_type Тип запису.
+ * @param string $lead      Початок речення.
+ * @return string
+ */
+function scala_archive_summary( string $post_type, string $lead ): string {
+	$names = array();
+
+	foreach ( scala_posts( $post_type ) as $one ) {
+		$names[] = get_the_title( $one );
+	}
+
+	$names = array_slice( array_values( array_filter( $names ) ), 0, 8 );
+
+	if ( ! $names ) {
+		return $lead . '.';
+	}
+
+	return $lead . ': ' . implode( ', ', $names ) . '.';
 }
 
 /**
