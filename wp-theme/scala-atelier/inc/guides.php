@@ -314,10 +314,11 @@ function scala_guides_box( string $tab ): void {
 			<?php foreach ( $guides as $guide ) : ?>
 				<?php
 				$slug   = sanitize_title( (string) ( $guide['slug'] ?? '' ) );
+				$kind   = 'page' === ( $guide['type'] ?? 'post' ) ? 'page' : 'post';
 				$exists = $slug ? get_posts(
 					array(
 						'name'           => $slug,
-						'post_type'      => 'post',
+						'post_type'      => $kind,
 						'post_status'    => array( 'publish', 'draft', 'pending', 'private', 'future', 'trash' ),
 						'posts_per_page' => 1,
 						'fields'         => 'ids',
@@ -326,6 +327,7 @@ function scala_guides_box( string $tab ): void {
 				?>
 				<li>
 					<strong><?php echo esc_html( (string) ( $guide['title'] ?? '' ) ); ?></strong>
+					<span class="scala-guides__kind"><?php echo esc_html( 'page' === $kind ? __( 'сторінка', 'scala' ) : __( 'стаття', 'scala' ) ); ?></span>
 					<?php if ( $exists ) : ?>
 						<span class="scala-tgbox__current"><?php esc_html_e( '— уже на сайті', 'scala' ); ?></span>
 					<?php endif; ?>
