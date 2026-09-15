@@ -536,6 +536,20 @@ function scala_keyphrase_for( int $post_id ): string {
 	}
 
 	/*
+	 * Сторінки, які тема створює сама, оголошують фразу в заготовці:
+	 * саме під неї писався текст, і вона не завжди дорівнює заголовку.
+	 */
+	if ( function_exists( 'scala_guide_seed_data' ) ) {
+		$slug = (string) get_post_field( 'post_name', $post_id );
+
+		foreach ( scala_guide_seed_data() as $guide ) {
+			if ( $slug === ( $guide['slug'] ?? '' ) && ! empty( $guide['keyphrase'] ) ) {
+				return (string) $guide['keyphrase'];
+			}
+		}
+	}
+
+	/*
 	 * Де назва на сайті й запит у пошуку розходяться. «Класичні штори»
 	 * ніхто не набирає — набирають «портьєри»; сторінку японських
 	 * панелей шукають як «японські штори».
