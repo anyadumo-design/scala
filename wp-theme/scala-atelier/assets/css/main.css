@@ -1263,23 +1263,28 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
     padding: 24px 0 !important;
   }
 
-  /* Було height: 74vh — кадр ставав вужчим за 0.6 пропорції, і з
-     широкої фотографії інтер’єру лишалась вертикальна смужка посередині.
-     Плюс смуга з підписом і кнопками закривала 45% висоти. Тепер кадр
-     має свої пропорції, а смуга стоїть під ним. */
+  /*
+   * Було height: 74vh — вертикальна рамка на широкій фотографії. А на
+   * цих кадрах штори висять по краях: саме їх обрізало першими, і
+   * лишалась смужка стіни посередині. Тому висоту тут задає сама
+   * фотографія: перший кадр стоїть у потоці й розтягує рамку під свою
+   * пропорцію, решта лягають поверх нього. Обрізання немає взагалі.
+   */
   .scen__stage { height: auto; background: transparent; }
-  .scen__frame { position: relative; inset: auto; aspect-ratio: 4 / 5; background: var(--c-ink); }
+  .scen__frame { position: relative; inset: auto; background: var(--c-ink); }
+  .scen__layer:first-child { position: relative; inset: auto; }
+  .scen__layer:first-child img { height: auto; }
   .scen__bar {
-    position: static; padding: 16px 0 0;
+    position: static; padding: 14px 0 0;
     flex-direction: column; align-items: stretch;
   }
   .scen__state { color: var(--c-ink); max-width: none; }
-  .scen__state-label { color: var(--c-meta); }
-  .scen__state-text { font-size: 17px; }
+  .scen__state-label { color: var(--c-meta); font-size: 10.5px; }
+  .scen__state-text { font-size: 16px; line-height: 1.4; margin-top: 6px; }
   .scen__controls {
     background: var(--c-line-soft, rgba(11,11,12,.06));
     -webkit-backdrop-filter: none; backdrop-filter: none;
-    margin-top: 14px;
+    margin-top: 12px;
   }
   .scen__btn { color: var(--c-ink); }
   .scen__btn.is-active { background: var(--c-ink); color: #fff; }
