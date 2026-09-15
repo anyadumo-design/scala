@@ -235,7 +235,12 @@
       down = true; moved = 0;
       startX = e.clientX;
       startLeft = strip.scrollLeft;
-      strip.setPointerCapture(e.pointerId);
+      /*
+       * Захоплення вказівника ставимо не тут, а коли рух справді почався.
+       * Інакше звичайний клік теж проходив через захоплення, і подія
+       * click діставалась самій стрічці — кнопки звуку на картках не
+       * спрацьовували взагалі.
+       */
     });
 
     strip.addEventListener('pointermove', function (e) {
@@ -243,6 +248,7 @@
       var dx = e.clientX - startX;
       if (!strip.classList.contains('is-dragging') && Math.abs(dx) > 4) {
         strip.classList.add('is-dragging');
+        try { strip.setPointerCapture(e.pointerId); } catch (err) {}
       }
       if (strip.classList.contains('is-dragging')) {
         moved = Math.abs(dx);
@@ -264,7 +270,9 @@
 
     // Після перетягування не відкривати посилання під курсором
     strip.addEventListener('click', function (e) {
-      if (moved > 4) { e.preventDefault(); e.stopPropagation(); moved = 0; }
+      var dragged = moved > 4;
+      moved = 0;
+      if (dragged) { e.preventDefault(); e.stopPropagation(); }
     }, true);
   }
 
@@ -475,30 +483,26 @@
 
     var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    function play(v) {
+      if (v.preload === 'none') { v.preload = 'metadata'; }
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {});
+    }
+
     videos.forEach(function (v) {
-      var frame  = v.parentNode;
-      var sound  = $('[data-scala-video-sound]', frame);
-      var start  = $('[data-scala-video-play]', frame);
-      var byUser = false; // людина зупинила сама — не поновлювати за неї
+      var frame = v.parentNode;
+      var sound = $('[data-scala-video-sound]', frame);
+      var start = $('[data-scala-video-play]', frame);
 
-      function play() {
-        if (v.preload === 'none') { v.preload = 'metadata'; }
-        var p = v.play();
-        // Зі звуком браузер може відмовити — тоді лишаємо кнопку.
-        if (p && p.catch) p.catch(function () { if (start) start.hidden = false; });
-      }
+      v.byUser = false; // людина зупинила сама — не поновлювати за неї
 
-      /*
-       * Видимість кнопки задає сам плеєр. Раніше вона виставлялась
-       * одразу після play(), а той асинхронний: відео вже грало, а
-       * кнопка лишалась висіти поверх кадру.
-       */
+      // Видимість кнопки задає сам плеєр, а не здогадка після play().
       v.addEventListener('play', function () { if (start) start.hidden = true; });
       v.addEventListener('pause', function () { if (start) start.hidden = false; });
 
       v.addEventListener('click', function () {
-        if (v.paused) { byUser = false; play(); }
-        else { byUser = true; v.pause(); }
+        if (v.paused) { v.byUser = false; play(v); }
+        else { v.byUser = true; v.pause(); }
       });
 
       if (start) {
@@ -506,47 +510,113 @@
 
         start.addEventListener('click', function (ev) {
           ev.stopPropagation();
-          byUser = false;
-          play();
+          v.byUser = false;
+          play(v);
         });
       }
 
       if (sound) {
         sound.dataset.off = sound.textContent.trim();
-        sound.dataset.on  = 'Звук' === sound.dataset.off ? 'Звук' : 'Вимкнути звук';
 
         sound.addEventListener('click', function (ev) {
           ev.stopPropagation();
+
+          // Звук — на одному відео за раз: інакше на стрічці заговорять
+          // усі одразу.
+          if (v.muted) {
+            videos.forEach(function (other) {
+              if (other === v || other.muted) return;
+              other.muted = true;
+              var b = $('[data-scala-video-sound]', other.parentNode);
+              if (b) { b.classList.remove('is-on'); b.setAttribute('aria-pressed', 'false'); }
+            });
+          }
+
           v.muted = !v.muted;
+          sound.classList.toggle('is-on', !v.muted);
           sound.setAttribute('aria-pressed', v.muted ? 'false' : 'true');
-          sound.textContent = v.muted ? sound.dataset.off : sound.dataset.on;
-          if (v.paused) { byUser = false; play(); }
+
+          if (sound.dataset.on) {
+            sound.textContent = v.muted ? sound.dataset.off : sound.dataset.on;
+          }
+
+          if (v.paused) { v.byUser = false; play(v); }
         });
       }
+    });
 
-      if (!('IntersectionObserver' in window)) {
-        if (!still) play();
-        return;
-      }
+    /*
+     * Стрічка проєктів: у кадр одночасно потрапляє кілька карток, і
+     * запускати кожну не можна — заграє все разом. Грає та, що ближча
+     * до середини стрічки; решта на паузі.
+     */
+    $$('.proj__strip').forEach(function (strip) {
+      var list = $$('video[data-scala-video]', strip);
+      if (!list.length) return;
 
-      /*
-       * Поза кадром відео ставиться на паузу завжди — навіть коли
-       * автозапуск вимкнено налаштуванням «менше руху». Інакше звук
-       * іде за людиною по всій сторінці.
-       */
-      var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting) {
-            if (!still && !byUser) play();
+      function pick() {
+        var box = strip.getBoundingClientRect();
+        var mid = box.left + box.width / 2;
+        var best = null;
+        var bestGap = Infinity;
+
+        list.forEach(function (v) {
+          var r = v.getBoundingClientRect();
+          var inStrip = r.right > box.left + 24 && r.left < box.right - 24;
+          var onScreen = r.bottom > 0 && r.top < (window.innerHeight || 0);
+
+          if (!inStrip || !onScreen) return;
+
+          var gap = Math.abs(r.left + r.width / 2 - mid);
+          if (gap < bestGap) { bestGap = gap; best = v; }
+        });
+
+        list.forEach(function (v) {
+          if (v === best) {
+            if (v.paused && !v.byUser && !still) play(v);
           } else if (!v.paused) {
             v.pause();
           }
         });
-      }, { threshold: 0.45 });
+      }
 
-      io.observe(v);
+      var waiting = false;
+      function schedule() {
+        if (waiting) return;
+        waiting = true;
+        requestAnimationFrame(function () { waiting = false; pick(); });
+      }
+
+      strip.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', schedule);
+      schedule();
     });
+
+    // Поодинокі відео поза стрічкою — за видимістю.
+    var loose = videos.filter(function (v) { return !v.closest('.proj__strip'); });
+
+    if (!loose.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      if (!still) loose.forEach(play);
+      return;
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var v = e.target;
+        if (e.isIntersecting) {
+          if (!still && !v.byUser) play(v);
+        } else if (!v.paused) {
+          v.pause();
+        }
+      });
+    }, { threshold: 0.45 });
+
+    loose.forEach(function (v) { io.observe(v); });
   }
+
 
 
   /* ------------------------------------------------------------------------
