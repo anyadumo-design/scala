@@ -27,6 +27,9 @@ $scala_first = $scala_scenarios[0];
 	<h2 class="scen__h2"><?php scala_the( 'scenarios_title' ); ?></h2>
 
 	<div id="scen-stage" class="scen__stage" data-cursor="LIGHT">
+		<?php // Кадри окремою рамкою: на телефоні смуга з підписом і ?>
+		<?php // кнопками стає під нею, а не поверх фото. ?>
+		<div class="scen__frame">
 		<?php foreach ( $scala_scenarios as $scala_i => $scala_scene ) : ?>
 			<div class="scen__layer<?php echo 0 === $scala_i ? ' is-active' : ''; ?>"
 				data-label="<?php echo esc_attr( $scala_scene['title'] ?? '' ); ?>"
@@ -49,6 +52,7 @@ $scala_first = $scala_scenarios[0];
 
 		<div class="scen__dim"></div>
 		<div class="scen__veil"></div>
+		</div>
 
 		<div class="scen__bar">
 			<div class="scen__state">

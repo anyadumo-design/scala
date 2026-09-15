@@ -140,6 +140,12 @@ function scala_meta_schema(): array {
 			'title'  => __( 'Дані проєкту', 'scala' ),
 			'fields' => array(
 				array(
+					'key'   => 'video',
+					'type'  => 'video',
+					'label' => __( 'Вертикальне відео', 'scala' ),
+					'help'  => __( 'Проєкти з відео показуються на початку стрічки. Обкладинкою служить головне фото проєкту.', 'scala' ),
+				),
+				array(
 					'key'   => 'wide',
 					'type'  => 'checkbox',
 					'label' => __( 'Широка картка у стрічці', 'scala' ),

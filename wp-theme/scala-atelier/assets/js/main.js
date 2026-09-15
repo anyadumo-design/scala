@@ -462,6 +462,80 @@
   }
 
   /* ------------------------------------------------------------------------
+     7a. Відео
+
+     Браузери не дають автозапуску зі звуком, тож відео стартує без
+     нього — інакше воно просто не запуститься. Грає лише те, що в
+     кадрі: інакше на сторінці з кількома відео телефон витрачає
+     трафік і батарею на те, чого ніхто не бачить.
+     ------------------------------------------------------------------------ */
+  function initVideo() {
+    var videos = $$('video[data-scala-video]');
+    if (!videos.length) return;
+
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function play(v) {
+      if (v.readyState < 2 && v.preload === 'none') v.load();
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {});
+    }
+
+    videos.forEach(function (v) {
+      var frame = v.parentNode;
+      var sound = $('[data-scala-video-sound]', frame);
+      var start = $('[data-scala-video-play]', frame);
+
+      // Тап по кадру ставить на паузу й знімає з неї.
+      v.addEventListener('click', function () {
+        if (v.paused) { play(v); } else { v.pause(); }
+        if (start) start.hidden = !v.paused;
+      });
+
+      if (sound) {
+        sound.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          v.muted = !v.muted;
+          sound.setAttribute('aria-pressed', v.muted ? 'false' : 'true');
+          if (sound.dataset.on) {
+            sound.textContent = v.muted ? (sound.dataset.off || sound.textContent) : sound.dataset.on;
+          }
+          if (v.paused) play(v);
+        });
+
+        // Підписи запамʼятовуємо до першого перемикання.
+        sound.dataset.off = sound.textContent.trim();
+        sound.dataset.on  = sound.dataset.off === 'Звук' ? 'Звук' : 'Вимкнути звук';
+      }
+
+      if (start) {
+        start.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          play(v);
+          start.hidden = true;
+        });
+      }
+
+      // З увімкненим «менше руху» відео чекає на клік.
+      if (still) {
+        if (start) start.hidden = false;
+        return;
+      }
+
+      if (!('IntersectionObserver' in window)) { play(v); return; }
+
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { play(v); }
+          else if (!v.paused) { v.pause(); }
+        });
+      }, { threshold: 0.45 });
+
+      io.observe(v);
+    });
+  }
+
+  /* ------------------------------------------------------------------------
      8. Форма заявки
 
      Перед самою формою — памʼять про джерело. Мітки utm_* з адреси,
@@ -760,6 +834,7 @@
     initLeadModal();
     initScenarios();
     initCatalogFilter();
+    initVideo();
     initForms();
     initPhoneMask();
     initLightbox();

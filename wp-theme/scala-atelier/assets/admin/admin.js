@@ -13,21 +13,34 @@
 
 		var $wrap = $( this ).closest( '[data-scala-image]' );
 
+		// Поле може бути і для зображення, і для відео — тип зберігається
+		// на самому блоці, щоб бібліотека відкривалась одразу з фільтром.
+		var type = $wrap.data( 'scala-media-type' ) === 'video' ? 'video' : 'image';
+
 		var frame = wp.media( {
-			title: SCALA_ADMIN.chooseImage,
-			button: { text: SCALA_ADMIN.useImage },
-			library: { type: 'image' },
+			title: 'video' === type ? SCALA_ADMIN.chooseVideo : SCALA_ADMIN.chooseImage,
+			button: { text: 'video' === type ? SCALA_ADMIN.useVideo : SCALA_ADMIN.useImage },
+			library: { type: type },
 			multiple: false
 		} );
 
 		frame.on( 'select', function () {
 			var attachment = frame.state().get( 'selection' ).first().toJSON();
-			var thumb = attachment.sizes && attachment.sizes.medium
-				? attachment.sizes.medium.url
-				: attachment.url;
 
 			$wrap.find( '[data-scala-image-input]' ).val( attachment.id );
-			$wrap.find( '.scala-image__preview' ).html( $( '<img>' ).attr( { src: thumb, alt: '' } ) );
+
+			if ( 'video' === type ) {
+				$wrap.find( '.scala-image__preview' ).html(
+					$( '<video>' ).attr( { src: attachment.url, muted: 'muted', playsinline: 'playsinline', preload: 'metadata' } )
+				);
+			} else {
+				var thumb = attachment.sizes && attachment.sizes.medium
+					? attachment.sizes.medium.url
+					: attachment.url;
+
+				$wrap.find( '.scala-image__preview' ).html( $( '<img>' ).attr( { src: thumb, alt: '' } ) );
+			}
+
 			$wrap.find( '[data-scala-image-clear]' ).prop( 'hidden', false );
 		} );
 

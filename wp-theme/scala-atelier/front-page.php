@@ -16,6 +16,7 @@ get_header();
 get_template_part( 'template-parts/landing/hero' );
 get_template_part( 'template-parts/landing/benefits' );
 get_template_part( 'template-parts/landing/scenarios' );
+get_template_part( 'template-parts/landing/video' );
 
 get_template_part(
 	'template-parts/landing/cta',

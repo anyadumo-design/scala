@@ -250,3 +250,10 @@
   color: #646970;
   font-size: 12px;
 }
+
+.scala-image--video .scala-image__preview video {
+  max-width: 200px;
+  max-height: 260px;
+  display: block;
+  background: #1d2327;
+}

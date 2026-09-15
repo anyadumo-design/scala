@@ -106,6 +106,8 @@ function scala_enqueue_admin( string $hook ): void {
 		array(
 			'chooseImage' => __( 'Обрати зображення', 'scala' ),
 			'useImage'    => __( 'Використати це зображення', 'scala' ),
+			'chooseVideo' => __( 'Обрати відео', 'scala' ),
+			'useVideo'    => __( 'Використати це відео', 'scala' ),
 			'confirmRow'  => __( 'Видалити цей блок?', 'scala' ),
 		)
 	);

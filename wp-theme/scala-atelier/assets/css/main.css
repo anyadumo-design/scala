@@ -433,6 +433,10 @@ summary::-webkit-details-marker { display: none; }
 .scen__stage {
   position: relative; height: min(62vh, 620px); background: var(--c-ink); overflow: hidden;
 }
+/* Рамка з кадрами. На десктопі вона на всю сцену, і смуга з підписом
+   лежить поверх неї; на телефоні (див. медіазапит) рамка отримує свої
+   пропорції, а смуга стає під нею. */
+.scen__frame { position: absolute; inset: 0; overflow: hidden; }
 .scen__layer {
   position: absolute; inset: 0; opacity: 0;
   transition: opacity .7s var(--ease-fade);
@@ -473,6 +477,66 @@ summary::-webkit-details-marker { display: none; }
   transition: background-color .3s ease, color .3s ease;
 }
 .scen__btn.is-active { background: #fff; color: var(--c-ink); }
+
+/* --------------------------------------------------------------------------
+   09a. Відео «під ключ»
+
+   Кадр вертикальний. На десктопі він у парі з текстом: сам по собі
+   9:16 або розтягнеться на пів екрана, або загубиться. На телефоні —
+   на всю ширину, бо там це рідний формат.
+   -------------------------------------------------------------------------- */
+.vid__grid {
+  display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 64px); align-items: center;
+}
+.vid__frame {
+  position: relative; aspect-ratio: 9 / 16; background: var(--c-ink);
+  overflow: hidden; max-height: min(78vh, 720px); margin-inline: auto;
+}
+.vid__player {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.vid__sound {
+  position: absolute; right: 12px; bottom: 12px;
+  border: none; cursor: pointer; border-radius: var(--radius-pill);
+  padding: 10px 16px; min-height: 40px;
+  font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+  background: rgba(255,255,255,.16); color: #fff;
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  transition: background-color .3s ease;
+}
+.vid__sound:hover { background: rgba(255,255,255,.28); }
+.vid__play {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  border: none; cursor: pointer; background: rgba(11,11,12,.28); color: #fff;
+}
+.vid__play-icon {
+  display: grid; place-items: center;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(255,255,255,.9); color: var(--c-ink);
+  font-size: 20px; padding-left: 4px;
+}
+.vid__h2 {
+  font-size: clamp(26px, 3.2vw, 44px); line-height: 1.06; letter-spacing: -.035em;
+  font-weight: 600; margin: 14px 0 0; max-width: 16ch; text-wrap: balance;
+}
+.vid__text {
+  font-size: 16.5px; line-height: 1.6; color: var(--c-body);
+  margin: 16px 0 0; max-width: 52ch;
+}
+.vid__points {
+  margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 10px;
+  max-width: 52ch;
+}
+.vid__points li {
+  position: relative; padding-left: 18px;
+  font-size: 15.5px; line-height: 1.5; color: var(--c-ink);
+}
+.vid__points li::before {
+  content: ""; position: absolute; left: 0; top: 9px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--c-accent);
+}
+.vid__btn { margin-top: 26px; }
 
 /* --------------------------------------------------------------------------
    10. CTA-смуга
@@ -555,7 +619,20 @@ summary::-webkit-details-marker { display: none; }
 .proj__strip.is-dragging img { pointer-events: none; }
 .proj__item { flex: none; width: min(52vw, 620px); }
 .proj__item--wide { width: min(74vw, 900px); }
-.proj__shot { height: min(68vh, 600px); background: var(--c-ph-photo); overflow: hidden; }
+/* Вертикальне відео: ширина рахується від тієї ж висоти кадру, щоб
+   картка стала на місце в стрічці, а не випирала з ряду. */
+.proj__item--video { width: min(38vw, 338px); }
+.proj__shot { height: min(68vh, 600px); background: var(--c-ph-photo); overflow: hidden; position: relative; }
+.proj__video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.proj__sound {
+  position: absolute; right: 10px; bottom: 10px;
+  border: none; cursor: pointer; border-radius: var(--radius-pill);
+  padding: 8px 14px; min-height: 36px;
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+  background: rgba(255,255,255,.16); color: #fff;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+.proj__sound:hover { background: rgba(255,255,255,.3); }
 .proj__cap {
   margin-top: 16px; padding-bottom: 4px;
   font-size: 14px; font-weight: 600; letter-spacing: .02em;
@@ -1186,13 +1263,41 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
     padding: 24px 0 !important;
   }
 
-  .scen__stage { height: 74vh; }
-  .scen__bar { padding: 18px; flex-direction: column; align-items: stretch; }
+  /* Було height: 74vh — кадр ставав вужчим за 0.6 пропорції, і з
+     широкої фотографії інтер’єру лишалась вертикальна смужка посередині.
+     Плюс смуга з підписом і кнопками закривала 45% висоти. Тепер кадр
+     має свої пропорції, а смуга стоїть під ним. */
+  .scen__stage { height: auto; background: transparent; }
+  .scen__frame { position: relative; inset: auto; aspect-ratio: 4 / 5; background: var(--c-ink); }
+  .scen__bar {
+    position: static; padding: 16px 0 0;
+    flex-direction: column; align-items: stretch;
+  }
+  .scen__state { color: var(--c-ink); max-width: none; }
+  .scen__state-label { color: var(--c-meta); }
+  .scen__state-text { font-size: 17px; }
+  .scen__controls {
+    background: var(--c-line-soft, rgba(11,11,12,.06));
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    margin-top: 14px;
+  }
+  .scen__btn { color: var(--c-ink); }
+  .scen__btn.is-active { background: var(--c-ink); color: #fff; }
   .scen__controls {
     width: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;
   }
   /* min-height тримає тап-таргет ≥44px — без візуальної зміни */
   .scen__btn { padding: 14px 6px; font-size: 10.5px; letter-spacing: .04em; min-height: 44px; }
+
+  /* Вертикальне відео на телефоні — на всю ширину, текст під ним. */
+  .vid__grid { grid-template-columns: 1fr; gap: 22px; }
+  .vid__frame { aspect-ratio: 9 / 16; max-height: 82vh; width: 100%; }
+  .vid__h2 { max-width: none; }
+  .vid__btn { width: 100%; text-align: center; }
+
+  /* Картка з відео у стрічці проєктів: та сама пропорція, що й сам кадр. */
+  .proj__item--video { width: min(68vw, 300px); }
+  .proj__shot { height: min(58vh, 520px); }
 
   .types-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
   .types-grid > :last-child { grid-column: span 2; }

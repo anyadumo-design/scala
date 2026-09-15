@@ -99,7 +99,11 @@ function scala_render_field( array $field, $value, string $name ): void {
 			break;
 
 		case 'image':
-			scala_render_image_field( $id, $name, (int) $value );
+			scala_render_media_field( $id, $name, (int) $value, 'image' );
+			break;
+
+		case 'video':
+			scala_render_media_field( $id, $name, (int) $value, 'video' );
 			break;
 
 		case 'repeater':
@@ -141,19 +145,31 @@ function scala_render_field( array $field, $value, string $name ): void {
  * @param int    $attachment_id Поточне вкладення.
  * @return void
  */
-function scala_render_image_field( string $id, string $name, int $attachment_id ): void {
-	$thumb = $attachment_id ? wp_get_attachment_image_url( $attachment_id, 'medium' ) : '';
+function scala_render_media_field( string $id, string $name, int $attachment_id, string $type = 'image' ): void {
+	$is_video = 'video' === $type;
+
+	if ( $is_video ) {
+		$url     = $attachment_id ? (string) wp_get_attachment_url( $attachment_id ) : '';
+		$preview = $url
+			? '<video src="' . esc_url( $url ) . '" muted playsinline preload="metadata"></video>'
+			: '<span class="scala-image__empty">' . esc_html__( 'Відео не обрано', 'scala' ) . '</span>';
+	} else {
+		$thumb   = $attachment_id ? wp_get_attachment_image_url( $attachment_id, 'medium' ) : '';
+		$preview = $thumb
+			? '<img src="' . esc_url( $thumb ) . '" alt="">'
+			: '<span class="scala-image__empty">' . esc_html__( 'Зображення не обрано', 'scala' ) . '</span>';
+	}
 
 	printf(
-		'<div class="scala-image" data-scala-image>
+		'<div class="scala-image%s" data-scala-image data-scala-media-type="%s">
 			<div class="scala-image__preview">%s</div>
 			<input type="hidden" id="%s" name="%s" value="%d" data-scala-image-input>
 			<button type="button" class="button" data-scala-image-pick>%s</button>
 			<button type="button" class="button-link scala-image__clear" data-scala-image-clear%s>%s</button>
 		</div>',
-		$thumb
-			? '<img src="' . esc_url( $thumb ) . '" alt="">'
-			: '<span class="scala-image__empty">' . esc_html__( 'Зображення не обрано', 'scala' ) . '</span>',
+		$is_video ? ' scala-image--video' : '',
+		esc_attr( $type ),
+		$preview,
 		esc_attr( $id ),
 		esc_attr( $name ),
 		$attachment_id,
@@ -271,6 +287,7 @@ function scala_sanitize_fields( array $fields, $raw ): array {
 				break;
 
 			case 'image':
+			case 'video':
 			case 'number':
 				$clean[ $key ] = (int) $value;
 				break;
