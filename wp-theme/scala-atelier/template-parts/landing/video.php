@@ -47,7 +47,7 @@ $scala_title      = (string) scala_opt( 'video_title', '' );
 					preload="none"
 					aria-label="<?php echo esc_attr( $scala_title ? $scala_title : __( 'Відео про пошиття штор', 'scala' ) ); ?>"></video>
 
-				<button type="button" class="vid__play" data-scala-video-play hidden>
+				<button type="button" class="vid__play" data-scala-video-play>
 					<span class="vid__play-icon" aria-hidden="true">&#9654;</span>
 					<span class="visually-hidden"><?php esc_html_e( 'Відтворити відео', 'scala' ); ?></span>
 				</button>

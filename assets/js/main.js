@@ -475,65 +475,79 @@
 
     var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    function play(v) {
-      if (v.readyState < 2 && v.preload === 'none') v.load();
-      var p = v.play();
-      if (p && p.catch) p.catch(function () {});
-    }
-
     videos.forEach(function (v) {
-      var frame = v.parentNode;
-      var sound = $('[data-scala-video-sound]', frame);
-      var start = $('[data-scala-video-play]', frame);
+      var frame  = v.parentNode;
+      var sound  = $('[data-scala-video-sound]', frame);
+      var start  = $('[data-scala-video-play]', frame);
+      var byUser = false; // людина зупинила сама — не поновлювати за неї
 
-      // Тап по кадру ставить на паузу й знімає з неї.
+      function play() {
+        if (v.preload === 'none') { v.preload = 'metadata'; }
+        var p = v.play();
+        // Зі звуком браузер може відмовити — тоді лишаємо кнопку.
+        if (p && p.catch) p.catch(function () { if (start) start.hidden = false; });
+      }
+
+      /*
+       * Видимість кнопки задає сам плеєр. Раніше вона виставлялась
+       * одразу після play(), а той асинхронний: відео вже грало, а
+       * кнопка лишалась висіти поверх кадру.
+       */
+      v.addEventListener('play', function () { if (start) start.hidden = true; });
+      v.addEventListener('pause', function () { if (start) start.hidden = false; });
+
       v.addEventListener('click', function () {
-        if (v.paused) { play(v); } else { v.pause(); }
-        if (start) start.hidden = !v.paused;
+        if (v.paused) { byUser = false; play(); }
+        else { byUser = true; v.pause(); }
       });
 
+      if (start) {
+        start.hidden = false;
+
+        start.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          byUser = false;
+          play();
+        });
+      }
+
       if (sound) {
+        sound.dataset.off = sound.textContent.trim();
+        sound.dataset.on  = 'Звук' === sound.dataset.off ? 'Звук' : 'Вимкнути звук';
+
         sound.addEventListener('click', function (ev) {
           ev.stopPropagation();
           v.muted = !v.muted;
           sound.setAttribute('aria-pressed', v.muted ? 'false' : 'true');
-          if (sound.dataset.on) {
-            sound.textContent = v.muted ? (sound.dataset.off || sound.textContent) : sound.dataset.on;
-          }
-          if (v.paused) play(v);
-        });
-
-        // Підписи запамʼятовуємо до першого перемикання.
-        sound.dataset.off = sound.textContent.trim();
-        sound.dataset.on  = sound.dataset.off === 'Звук' ? 'Звук' : 'Вимкнути звук';
-      }
-
-      if (start) {
-        start.addEventListener('click', function (ev) {
-          ev.stopPropagation();
-          play(v);
-          start.hidden = true;
+          sound.textContent = v.muted ? sound.dataset.off : sound.dataset.on;
+          if (v.paused) { byUser = false; play(); }
         });
       }
 
-      // З увімкненим «менше руху» відео чекає на клік.
-      if (still) {
-        if (start) start.hidden = false;
+      if (!('IntersectionObserver' in window)) {
+        if (!still) play();
         return;
       }
 
-      if (!('IntersectionObserver' in window)) { play(v); return; }
-
+      /*
+       * Поза кадром відео ставиться на паузу завжди — навіть коли
+       * автозапуск вимкнено налаштуванням «менше руху». Інакше звук
+       * іде за людиною по всій сторінці.
+       */
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
-          if (e.isIntersecting) { play(v); }
-          else if (!v.paused) { v.pause(); }
+          if (e.isIntersecting) {
+            if (!still && !byUser) play();
+          } else if (!v.paused) {
+            v.pause();
+          }
         });
       }, { threshold: 0.45 });
 
       io.observe(v);
     });
   }
+
 
   /* ------------------------------------------------------------------------
      8. Форма заявки
