@@ -483,7 +483,7 @@ function scala_options_schema(): array {
 				),
 				array(
 					'key'     => 'notify_email',
-					'type'    => 'email',
+					'type'    => 'emails',
 					'label'   => __( 'Куди надсилати заявки', 'scala' ),
 					'help'    => __( 'Порожньо — на адресу адміністратора сайту. Кілька адрес — через кому.', 'scala' ),
 				),

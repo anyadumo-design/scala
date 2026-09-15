@@ -287,6 +287,16 @@ function scala_sanitize_fields( array $fields, $raw ): array {
 				$clean[ $key ] = sanitize_email( (string) $value );
 				break;
 
+			case 'emails':
+				/*
+				 * Кілька адрес через кому. sanitize_email() на такому
+				 * рядку повертає порожньо (два «@» — для неї це не
+				 * адреса), тому чистимо кожну окремо.
+				 */
+				$list          = array_map( 'sanitize_email', array_map( 'trim', explode( ',', (string) $value ) ) );
+				$clean[ $key ] = implode( ', ', array_filter( $list ) );
+				break;
+
 			case 'textarea':
 				// Дозволяємо інлайнові теги: <br>, <span>, посилання.
 				$clean[ $key ] = wp_kses( (string) $value, scala_inline_tags() );

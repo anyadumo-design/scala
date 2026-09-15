@@ -176,6 +176,10 @@
   font-size: 15px;
 }
 
+.scala-tgbox__result {
+  margin: 0 0 14px;
+}
+
 .scala-tgbox__status {
   margin: 0 0 14px;
   color: #50575e;
