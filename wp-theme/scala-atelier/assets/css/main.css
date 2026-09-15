@@ -511,6 +511,11 @@ summary::-webkit-details-marker { display: none; }
   border: none; cursor: pointer; background: rgba(11,11,12,.28); color: #fff;
   transition: opacity .25s ease;
 }
+/* display: grid вище перебиває [hidden] з таблиці браузера. Без цього
+   рядка кнопка «зникала» тільки в розмітці: на екрані вона лишалась і
+   ловила всі тапи, тож відео не ставилось на паузу. Те саме вже було
+   з формою заявки й плитками відгуків. */
+.vid__play[hidden] { display: none; }
 .vid__play-icon {
   display: grid; place-items: center;
   width: 64px; height: 64px; border-radius: 50%;
