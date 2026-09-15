@@ -1113,6 +1113,9 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 .chip.is-active { border-color: var(--c-ink); background: var(--c-ink); color: #fff; }
 
 .cat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+/* Ряд карток під текстом сторінки кімнати: завжди чотири в ряд. */
+.cat-grid--four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
 .cat-card__frame { aspect-ratio: 3/4; background: var(--c-ph-photo); overflow: hidden; }
 .cat-card__zoom { width: 100%; height: 100%; transition: transform .9s var(--ease-photo); }
 .cat-card:hover .cat-card__zoom { transform: scale(1.05); }
@@ -1324,6 +1327,8 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   /* Картка з відео у стрічці проєктів: та сама пропорція, що й сам кадр. */
   .proj__item--video { width: min(68vw, 300px); }
   .proj__shot { height: min(58vh, 520px); }
+
+  .cat-grid--four { grid-template-columns: 1fr 1fr; gap: 12px; }
 
   .types-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
   .types-grid > :last-child { grid-column: span 2; }

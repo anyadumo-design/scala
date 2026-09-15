@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCALA_VERSION', '1.40.0' );
+define( 'SCALA_VERSION', '1.41.0' );
 define( 'SCALA_DIR', get_template_directory() );
 define( 'SCALA_URI', get_template_directory_uri() );
 
@@ -31,6 +31,7 @@ require_once SCALA_DIR . '/inc/leads.php';
 require_once SCALA_DIR . '/inc/telegram.php';
 require_once SCALA_DIR . '/inc/seo.php';
 require_once SCALA_DIR . '/inc/autolink.php';
+require_once SCALA_DIR . '/inc/room-types.php';
 require_once SCALA_DIR . '/inc/redirects.php';
 require_once SCALA_DIR . '/inc/seed-content.php';
 require_once SCALA_DIR . '/inc/seed-types.php';
