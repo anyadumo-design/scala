@@ -543,7 +543,42 @@
     function play(v) {
       if (v.preload === 'none') { v.preload = 'metadata'; }
       var p = v.play();
-      if (p && p.catch) p.catch(function () {});
+      if (p && p.catch) {
+        p.catch(function () {
+          /*
+           * Зі звуком браузер може відмовити. Тоді вмикаємо без нього:
+           * німе відео краще за зупинене.
+           */
+          if (!v.muted) {
+            v.muted = true;
+            markSound(v);
+            var again = v.play();
+            if (again && again.catch) again.catch(function () {});
+          }
+        });
+      }
+    }
+
+    // Стан кнопки звуку має збігатися зі станом плеєра.
+    function markSound(v) {
+      var btn = $('[data-scala-video-sound]', v.parentNode);
+      if (!btn) return;
+
+      btn.classList.toggle('is-on', !v.muted);
+      btn.setAttribute('aria-pressed', v.muted ? 'false' : 'true');
+
+      if (btn.dataset.on) {
+        btn.textContent = v.muted ? btn.dataset.off : btn.dataset.on;
+      }
+    }
+
+    // Звук — на одному відео за раз, інакше заговорять кілька одразу.
+    function soloSound(v) {
+      videos.forEach(function (other) {
+        if (other === v || other.muted) return;
+        other.muted = true;
+        markSound(other);
+      });
     }
 
     videos.forEach(function (v) {
@@ -568,6 +603,16 @@
         start.addEventListener('click', function (ev) {
           ev.stopPropagation();
           v.byUser = false;
+
+          /*
+           * Натиснули «дивитись» — отже, хочуть подивитись, а не
+           * побачити німий ролик. Автозапуск при прокрутці лишається
+           * беззвучним: зі звуком браузер його просто не дозволить.
+           */
+          soloSound(v);
+          v.muted = false;
+          markSound(v);
+
           play(v);
         });
       }
@@ -578,24 +623,10 @@
         sound.addEventListener('click', function (ev) {
           ev.stopPropagation();
 
-          // Звук — на одному відео за раз: інакше на стрічці заговорять
-          // усі одразу.
-          if (v.muted) {
-            videos.forEach(function (other) {
-              if (other === v || other.muted) return;
-              other.muted = true;
-              var b = $('[data-scala-video-sound]', other.parentNode);
-              if (b) { b.classList.remove('is-on'); b.setAttribute('aria-pressed', 'false'); }
-            });
-          }
+          if (v.muted) { soloSound(v); }
 
           v.muted = !v.muted;
-          sound.classList.toggle('is-on', !v.muted);
-          sound.setAttribute('aria-pressed', v.muted ? 'false' : 'true');
-
-          if (sound.dataset.on) {
-            sound.textContent = v.muted ? sound.dataset.off : sound.dataset.on;
-          }
+          markSound(v);
 
           if (v.paused) { v.byUser = false; play(v); }
         });
