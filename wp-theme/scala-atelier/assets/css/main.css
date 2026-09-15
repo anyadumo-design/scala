@@ -1372,8 +1372,14 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   .types-grid { grid-template-columns: 1fr; }
   .types-grid > :last-child { grid-column: span 1; }
   .types-grid > :last-child .type-card__frame { aspect-ratio: 3/4; }
-  .scen__controls { grid-template-columns: 1fr 1fr; }
-  .scen__btn:last-child { grid-column: span 2; }
+  /* Три кнопки лишаються в одному ряду навіть на 375px: замість
+     переносу останньої на власний рядок підпис переноситься всередині
+     самої кнопки. Ряд читається як один перемикач, а не як список. */
+  .scen__controls { grid-template-columns: repeat(3, 1fr); gap: 3px; }
+  .scen__btn {
+    padding: 8px 4px; font-size: 9.5px; letter-spacing: .02em;
+    line-height: 1.15; white-space: normal; hyphens: none;
+  }
   .cat-grid { grid-template-columns: 1fr; }
 }
 
