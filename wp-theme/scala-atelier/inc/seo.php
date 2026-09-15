@@ -165,10 +165,32 @@ function scala_document_title(): string {
 	}
 
 	if ( is_home() ) {
-		return __( 'Журнал', 'scala' ) . $sep . $site;
+		$blog_id = (int) get_option( 'page_for_posts' );
+		$blog    = $blog_id ? get_the_title( $blog_id ) : __( 'Журнал', 'scala' );
+
+		return $blog . $sep . $site;
 	}
 
-	return $site;
+	if ( is_post_type_archive() ) {
+		$label = trim( wp_strip_all_tags( (string) post_type_archive_title( '', false ) ) );
+
+		return $label ? $label . $sep . $site : '';
+	}
+
+	if ( is_category() || is_tag() || is_tax() ) {
+		$term = trim( wp_strip_all_tags( (string) single_term_title( '', false ) ) );
+
+		return $term ? $term . $sep . $site : '';
+	}
+
+	/*
+	 * Далі — усе, для чого в теми немає власного заголовка: архіви за
+	 * датою, вкладення, службові сторінки. Порожній рядок означає
+	 * «не втручаємось»: заголовок лишиться той, що порахував Yoast.
+	 * Раніше тут поверталась сама назва сайту, і архіви тканин та
+	 * проєктів отримували <title>Scala</title> замість власної назви.
+	 */
+	return '';
 }
 
 /**
@@ -233,7 +255,12 @@ function scala_meta_description(): string {
 		}
 	}
 
-	return scala_trim_text( (string) get_bloginfo( 'description' ) );
+	/*
+	 * Свого опису для решти контекстів у теми немає. Вигадувати його
+	 * з гасла сайту не варто: один і той самий рядок на десятку
+	 * різних адрес — це не опис. Порожньо означає «хай вирішує Yoast».
+	 */
+	return '';
 }
 
 /**
@@ -302,7 +329,14 @@ function scala_trim_text( string $text, int $max = 158 ): string {
 		$cut = mb_substr( $cut, 0, $space );
 	}
 
-	return rtrim( $cut, " ,.;:—-" ) . '…';
+	/*
+	 * Саме preg_replace, а не rtrim: другий аргумент rtrim — набір
+	 * БАЙТІВ, і тире (E2 80 94) додає в нього байти 80 та 94. А це
+	 * закінчення «р» (D1 80) і «є» (D1 54) — rtrim відкушував у них
+	 * останній байт, рядок ставав битим UTF-8, і WordPress викидав
+	 * такий опис цілком: у розмітці лишався порожній description.
+	 */
+	return preg_replace( '~[\s,.;:—–-]+$~u', '', $cut ) . '…';
 }
 
 /**
