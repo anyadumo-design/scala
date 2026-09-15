@@ -18,8 +18,20 @@ while ( have_posts() ) :
 	<section class="section--sub">
 		<div class="eyebrow eyebrow--plain">
 			<?php
-			$scala_obj = get_post_type_object( get_post_type() );
-			echo esc_html( $scala_obj ? $scala_obj->labels->singular_name : '' );
+			/*
+			 * Для звичайного запису підпис беремо з назви сторінки журналу.
+			 * Стандартна назва типу — «Запис» — це слово з адмінки, і
+			 * відвідувачу воно нічого не каже.
+			 */
+			if ( 'post' === get_post_type() ) {
+				$scala_blog_id = (int) get_option( 'page_for_posts' );
+				$scala_label   = $scala_blog_id ? get_the_title( $scala_blog_id ) : __( 'Журнал', 'scala' );
+			} else {
+				$scala_obj   = get_post_type_object( get_post_type() );
+				$scala_label = $scala_obj ? $scala_obj->labels->singular_name : '';
+			}
+
+			echo esc_html( $scala_label );
 			?>
 		</div>
 		<h1 class="h1-page balance"><?php the_title(); ?></h1>
