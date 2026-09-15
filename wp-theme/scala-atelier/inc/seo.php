@@ -401,6 +401,151 @@ function scala_share_image(): string {
 }
 
 /**
+ * Чим саме займається ательє — для розмітки організації.
+ *
+ * Без адреси (її в ательє немає) головні орієнтири для пошуковика й
+ * ШІ-асистента — телефон, місто обслуговування, соцмережі й перелік
+ * того, що ми робимо. Усе береться з налаштувань: у розмітку не
+ * потрапляє нічого, чого немає на сторінці контактів.
+ *
+ * @return array
+ */
+function scala_business_props(): array {
+	$props = array();
+
+	$phone = scala_tel( (string) scala_opt( 'phone', '' ) );
+	if ( $phone ) {
+		$props['telephone'] = $phone;
+	}
+
+	$email = (string) scala_opt( 'email', '' );
+	if ( $email ) {
+		$props['email'] = $email;
+	}
+
+	$city = trim( wp_strip_all_tags( (string) scala_opt( 'city', '' ) ) );
+	if ( $city ) {
+		$props['areaServed'] = array(
+			'@type' => 'City',
+			'name'  => $city,
+		);
+	}
+
+	if ( $phone ) {
+		$contact = array(
+			'@type'             => 'ContactPoint',
+			// Службове значення зі словника Google, не текст для людини.
+			'contactType'       => 'sales',
+			'telephone'         => $phone,
+			'availableLanguage' => array( 'uk' ),
+		);
+
+		if ( $city ) {
+			$contact['areaServed'] = $city;
+		}
+
+		$props['contactPoint'] = $contact;
+	}
+
+	$social = array_filter(
+		array(
+			(string) scala_opt( 'instagram', '' ),
+			(string) scala_opt( 'telegram', '' ),
+			(string) scala_opt( 'whatsapp', '' ),
+		)
+	);
+
+	if ( $social ) {
+		$props['sameAs'] = array_values( $social );
+	}
+
+	$knows = array();
+	foreach ( scala_posts( 'scala_type' ) as $type ) {
+		$knows[] = get_the_title( $type );
+	}
+
+	$knows = array_values( array_filter( $knows ) );
+	if ( $knows ) {
+		$props['knowsAbout'] = $knows;
+	}
+
+	return $props;
+}
+
+/**
+ * Види штор як перелік послуг.
+ *
+ * @return array|null
+ */
+function scala_offer_catalog(): ?array {
+	$offers = array();
+
+	foreach ( scala_posts( 'scala_type' ) as $type ) {
+		$offers[] = array(
+			'@type'       => 'Offer',
+			'itemOffered' => array(
+				'@type' => 'Service',
+				'name'  => get_the_title( $type ),
+				'url'   => get_permalink( $type ),
+			),
+		);
+	}
+
+	if ( ! $offers ) {
+		return null;
+	}
+
+	return array(
+		'@type'           => 'OfferCatalog',
+		'name'            => __( 'Види штор', 'scala' ),
+		'itemListElement' => $offers,
+	);
+}
+
+/**
+ * Доповнює картку організації, яку малює Yoast.
+ *
+ * Сам Yoast знає лише назву, адресу сайту й логотип. Ні телефона, ні
+ * міста, ні того, що ательє взагалі шиє, у розмітці немає — а саме це
+ * читають пошуковик і ШІ-асистент, вирішуючи, кого порадити в Києві.
+ * Своєї організації не додаємо: дві на сторінці сперечалися б між
+ * собою. Те, що Yoast уже заповнив, не чіпаємо.
+ *
+ * @param mixed $data Дані вузла Organization.
+ * @return mixed
+ */
+function scala_enrich_yoast_organization( $data ) {
+	if ( ! is_array( $data ) ) {
+		return $data;
+	}
+
+	foreach ( scala_business_props() as $key => $value ) {
+		if ( 'sameAs' === $key ) {
+			$saved = isset( $data['sameAs'] ) && is_array( $data['sameAs'] ) ? $data['sameAs'] : array();
+
+			$data['sameAs'] = array_values( array_unique( array_merge( $saved, $value ) ) );
+			continue;
+		}
+
+		if ( empty( $data[ $key ] ) ) {
+			$data[ $key ] = $value;
+		}
+	}
+
+	// Повний перелік послуг доречний на головній, а не на кожній сторінці.
+	if ( is_front_page() && empty( $data['hasOfferCatalog'] ) ) {
+		$catalog = scala_offer_catalog();
+
+		if ( $catalog ) {
+			$data['hasOfferCatalog'] = $catalog;
+		}
+	}
+
+	return $data;
+}
+add_filter( 'wpseo_schema_organization', 'scala_enrich_yoast_organization', 20 );
+
+/**
  * Структуровані дані головної сторінки.
  *
  * FAQ виводимо навіть за активного Yoast: питання зберігаються в
@@ -417,35 +562,20 @@ function scala_json_ld(): void {
 	$home  = trailingslashit( home_url( '/' ) );
 
 	if ( ! scala_seo_plugin_active() ) {
-		$business = array(
-			'@type'       => array( 'LocalBusiness', 'HomeAndConstructionBusiness' ),
-			'@id'         => $home . '#business',
-			'name'        => get_bloginfo( 'name' ),
-			'url'         => $home,
-			'description' => scala_meta_description(),
+		$business = array_merge(
+			array(
+				'@type'       => array( 'LocalBusiness', 'HomeAndConstructionBusiness' ),
+				'@id'         => $home . '#business',
+				'name'        => get_bloginfo( 'name' ),
+				'url'         => $home,
+				'description' => scala_meta_description(),
+			),
+			scala_business_props()
 		);
-
-		$phone = scala_tel( (string) scala_opt( 'phone', '' ) );
-		if ( $phone ) {
-			$business['telephone'] = $phone;
-		}
-
-		$email = (string) scala_opt( 'email', '' );
-		if ( $email ) {
-			$business['email'] = $email;
-		}
 
 		$image = scala_share_image();
 		if ( $image ) {
 			$business['image'] = $image;
-		}
-
-		$city = (string) scala_opt( 'city', '' );
-		if ( $city ) {
-			$business['areaServed'] = array(
-				'@type' => 'City',
-				'name'  => $city,
-			);
 		}
 
 		// Адреса зʼявиться в розмітці лише коли її заповнять в адмінці.
@@ -454,42 +584,14 @@ function scala_json_ld(): void {
 			$business['address'] = array(
 				'@type'           => 'PostalAddress',
 				'streetAddress'   => $address,
-				'addressLocality' => $city ?: 'Київ',
+				'addressLocality' => (string) scala_opt( 'city', '' ) ?: 'Київ',
 				'addressCountry'  => 'UA',
 			);
 		}
 
-		$social = array_filter(
-			array(
-				(string) scala_opt( 'instagram', '' ),
-				(string) scala_opt( 'telegram', '' ),
-				(string) scala_opt( 'whatsapp', '' ),
-			)
-		);
-
-		if ( $social ) {
-			$business['sameAs'] = array_values( $social );
-		}
-
-		// Види штор як перелік послуг.
-		$offers = array();
-		foreach ( scala_posts( 'scala_type' ) as $type ) {
-			$offers[] = array(
-				'@type'       => 'Offer',
-				'itemOffered' => array(
-					'@type' => 'Service',
-					'name'  => get_the_title( $type ),
-					'url'   => get_permalink( $type ),
-				),
-			);
-		}
-
-		if ( $offers ) {
-			$business['hasOfferCatalog'] = array(
-				'@type'           => 'OfferCatalog',
-				'name'            => __( 'Види штор', 'scala' ),
-				'itemListElement' => $offers,
-			);
+		$catalog = scala_offer_catalog();
+		if ( $catalog ) {
+			$business['hasOfferCatalog'] = $catalog;
 		}
 
 		$graph[] = $business;
@@ -603,6 +705,44 @@ function scala_type_json_ld(): void {
 		'@type'           => 'BreadcrumbList',
 		'itemListElement' => $crumbs,
 	);
+
+	/*
+	 * Послуга окремим вузлом: «Рулонні системи» — це не товар з ціною,
+	 * а робота під замовлення в конкретному місті. Саме так її має
+	 * читати пошуковик і ШІ-асистент, якого питають про Київ.
+	 */
+	$service = array(
+		'@type'       => 'Service',
+		'@id'         => get_permalink( $post_id ) . '#service',
+		'name'        => get_the_title( $post_id ),
+		'serviceType' => get_the_title( $post_id ),
+		'url'         => (string) get_permalink( $post_id ),
+		'provider'    => array(
+			'@type' => 'Organization',
+			'name'  => get_bloginfo( 'name' ),
+			'url'   => home_url( '/' ),
+		),
+	);
+
+	$service_desc = scala_meta_description();
+	if ( $service_desc ) {
+		$service['description'] = $service_desc;
+	}
+
+	$service_city = trim( wp_strip_all_tags( (string) scala_opt( 'city', '' ) ) );
+	if ( $service_city ) {
+		$service['areaServed'] = array(
+			'@type' => 'City',
+			'name'  => $service_city,
+		);
+	}
+
+	$service_image = scala_share_image();
+	if ( $service_image ) {
+		$service['image'] = $service_image;
+	}
+
+	$graph[] = $service;
 
 	$faq_items = array();
 
