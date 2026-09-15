@@ -83,6 +83,51 @@ function scala_guide_known_hashes(): array {
 }
 
 /**
+ * Пише матеріал у базу без санітайзера вмісту.
+ *
+ * Коли тема працює поза адмінкою, залогіненого користувача немає, і
+ * WordPress проганяє вміст через kses. Текст після цього трохи інший,
+ * ніж той, який ми зберегли, — і наступного разу матеріал виглядає
+ * «відредагованим людиною», хоча його ніхто не чіпав. Вміст тут наш
+ * власний, із файлу теми, тож чистити його нема від чого.
+ *
+ * @param array $fields Поля для wp_insert_post або wp_update_post.
+ * @return int|WP_Error ID запису.
+ */
+function scala_write_guide( array $fields ) {
+	$kses = has_filter( 'content_save_pre', 'wp_filter_post_kses' );
+
+	if ( $kses ) {
+		kses_remove_filters();
+	}
+
+	$result = isset( $fields['ID'] )
+		? wp_update_post( $fields, true )
+		: wp_insert_post( $fields, true );
+
+	if ( $kses ) {
+		kses_init_filters();
+	}
+
+	return $result;
+}
+
+/**
+ * Запамʼятовує, що саме тема поклала в запис.
+ *
+ * Два відбитки: те, що лежить у базі — щоб побачити правку людини, —
+ * і те, що було в заготовці, щоб побачити зміну самої заготовки.
+ *
+ * @param int    $post_id ID запису.
+ * @param string $content Вміст із заготовки.
+ * @return void
+ */
+function scala_remember_guide( int $post_id, string $content ): void {
+	update_post_meta( $post_id, '_scala_guide_hash', md5( (string) get_post_field( 'post_content', $post_id ) ) );
+	update_post_meta( $post_id, '_scala_guide_src', md5( $content ) );
+}
+
+/**
  * Створює ті матеріали, яких ще немає, і оновлює нерушені.
  *
  * Якщо запис уже є, але його жодного разу не редагували — текст
@@ -134,18 +179,26 @@ function scala_insert_missing_guides(): array {
 		if ( $exists ) {
 			$post_id = (int) $exists[0];
 			$stored  = (string) get_post_meta( $post_id, '_scala_guide_hash', true );
+			$source  = (string) get_post_meta( $post_id, '_scala_guide_src', true );
 			$current = md5( (string) get_post_field( 'post_content', $post_id ) );
 			$known   = in_array( $current, scala_guide_known_hashes(), true );
 
+			/*
+			 * Записи, створені до появи позначки про джерело: тема
+			 * писала їх сама, але відбиток міг розійтися через
+			 * санітайзер WordPress. Один раз приводимо їх до ладу.
+			 */
+			$legacy = '' === $source && '' !== $stored;
+
 			// Текст редагували — лишаємо як є: правка людини важливіша.
-			if ( $current !== $stored && ! $known ) {
+			if ( $current !== $stored && ! $known && ! $legacy ) {
 				$skipped[] = $title;
 				continue;
 			}
 
 			$fields = array();
 
-			if ( md5( $content ) !== $current ) {
+			if ( md5( $content ) !== $source || $legacy ) {
 				$fields['post_content'] = $content;
 				$fields['post_excerpt'] = (string) ( $guide['excerpt'] ?? '' );
 			}
@@ -167,13 +220,13 @@ function scala_insert_missing_guides(): array {
 
 			$fields['ID'] = $post_id;
 
-			wp_update_post( $fields );
-			update_post_meta( $post_id, '_scala_guide_hash', md5( $content ) );
+			scala_write_guide( $fields );
+			scala_remember_guide( $post_id, $content );
 			$updated[] = $title;
 			continue;
 		}
 
-		$post_id = wp_insert_post(
+		$post_id = scala_write_guide(
 			array(
 				'post_type'    => $type,
 				'post_status'  => $status,
@@ -181,15 +234,14 @@ function scala_insert_missing_guides(): array {
 				'post_title'   => $title,
 				'post_excerpt' => (string) ( $guide['excerpt'] ?? '' ),
 				'post_content' => $content,
-			),
-			true
+			)
 		);
 
-		if ( is_wp_error( $post_id ) ) {
+		if ( is_wp_error( $post_id ) || ! $post_id ) {
 			continue;
 		}
 
-		update_post_meta( (int) $post_id, '_scala_guide_hash', md5( $content ) );
+		scala_remember_guide( (int) $post_id, $content );
 		$added[] = $title;
 	}
 
