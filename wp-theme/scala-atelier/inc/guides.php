@@ -48,7 +48,16 @@ function scala_expand_guide_links( string $content ): string {
 			} elseif ( 'archive' === $kind ) {
 				$url = (string) get_post_type_archive_link( 'scala_type' );
 			} elseif ( 'page' === $kind ) {
+				// Спершу сторінка з призначеним шаблоном, потім — за слагом.
 				$url = (string) scala_page_url( $key );
+
+				if ( ! $url ) {
+					$page = get_page_by_path( $key );
+
+					$url = ( $page instanceof WP_Post && 'publish' === $page->post_status )
+						? (string) get_permalink( $page )
+						: '';
+				}
 			}
 
 			return $url ? sprintf( '<a href="%s">%s</a>', esc_url( $url ), $text ) : $text;
@@ -124,6 +133,11 @@ function scala_insert_missing_guides(): array {
 				continue;
 			}
 
+			// Нічого не змінилось — не чіпаємо запис і не смітимо ревізіями.
+			if ( md5( $content ) === $current ) {
+				continue;
+			}
+
 			wp_update_post(
 				array(
 					'ID'           => $post_id,
@@ -195,6 +209,43 @@ function scala_guide_link( string $slug = 'yaki-shtory-obraty' ): ?array {
 		: null;
 
 	return $cache[ $slug ];
+}
+
+/**
+ * Опубліковані сторінки під кімнати.
+ *
+ * Поки сторінка чернетка, її тут немає — шаблон не покаже посилання
+ * в нікуди.
+ *
+ * @return array Список масивів url і title.
+ */
+function scala_room_links(): array {
+	static $cache = null;
+
+	if ( null !== $cache ) {
+		return $cache;
+	}
+
+	$cache = array();
+
+	foreach ( scala_guide_seed_data() as $guide ) {
+		if ( 'page' !== ( $guide['type'] ?? 'post' ) ) {
+			continue;
+		}
+
+		$page = get_page_by_path( (string) ( $guide['slug'] ?? '' ) );
+
+		if ( ! $page instanceof WP_Post || 'publish' !== $page->post_status ) {
+			continue;
+		}
+
+		$cache[] = array(
+			'url'   => (string) get_permalink( $page ),
+			'title' => get_the_title( $page ),
+		);
+	}
+
+	return $cache;
 }
 
 /**

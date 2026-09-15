@@ -51,15 +51,54 @@ function scala_maybe_upgrade(): void {
 	set_transient( 'scala_upgrading', 1, MINUTE_IN_SECONDS );
 
 	scala_ensure_blog_page();
-
-	if ( function_exists( 'scala_insert_missing_guides' ) ) {
-		scala_insert_missing_guides();
-	}
+	scala_sync_guides();
 
 	update_option( SCALA_APPLIED, SCALA_VERSION, false );
 	delete_transient( 'scala_upgrading' );
 }
 add_action( 'admin_init', 'scala_maybe_upgrade' );
+
+/**
+ * Звіряє матеріали з заготовками.
+ *
+ * Окремо від оновлення версії, бо привід буває й інший: сторінку під
+ * кімнату опублікували пізніше, і посилання на неї в статті має
+ * зʼявитися само, без жодної кнопки. Перевірка дешева — кілька
+ * запитів, — але щогодини, а не на кожному кліку в адмінці.
+ *
+ * @return void
+ */
+function scala_sync_guides(): void {
+	if ( ! function_exists( 'scala_insert_missing_guides' ) ) {
+		return;
+	}
+
+	scala_insert_missing_guides();
+	set_transient( 'scala_guides_synced', 1, HOUR_IN_SECONDS );
+}
+
+/**
+ * Щогодинна звірка матеріалів поза оновленням теми.
+ *
+ * @return void
+ */
+function scala_maybe_sync_guides(): void {
+	if ( wp_doing_ajax() || wp_doing_cron() || ! is_admin() ) {
+		return;
+	}
+
+	if ( ! current_user_can( 'edit_posts' ) || get_transient( 'scala_guides_synced' ) ) {
+		return;
+	}
+
+	// Під час оновлення версії звірка вже відбудеться — не подвоюємо.
+	if ( SCALA_VERSION !== (string) get_option( SCALA_APPLIED, '' ) ) {
+		return;
+	}
+
+	scala_sync_guides();
+}
+add_action( 'admin_init', 'scala_maybe_sync_guides', 20 );
 
 /**
  * Сторінка зі списком статей.

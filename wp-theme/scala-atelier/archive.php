@@ -24,6 +24,18 @@ get_header();
 			<a href="<?php echo esc_url( $scala_guide['url'] ); ?>"><?php echo esc_html( $scala_guide['title'] ); ?></a>
 		</p>
 	<?php endif; ?>
+
+	<?php $scala_rooms = is_post_type_archive( 'scala_type' ) ? scala_room_links() : array(); ?>
+
+	<?php if ( $scala_rooms ) : ?>
+		<p class="lead" style="margin-top:10px">
+			<?php esc_html_e( 'За кімнатами:', 'scala' ); ?>
+			<?php foreach ( $scala_rooms as $scala_i => $scala_room ) : ?>
+				<?php echo $scala_i ? ' · ' : ' '; ?>
+				<a href="<?php echo esc_url( $scala_room['url'] ); ?>"><?php echo esc_html( $scala_room['title'] ); ?></a>
+			<?php endforeach; ?>
+		</p>
+	<?php endif; ?>
 </section>
 
 <section class="section" style="padding-top:28px">
