@@ -870,6 +870,9 @@ add_action( 'wp_head', 'scala_type_json_ld', 6 );
  * @return mixed
  */
 function scala_filter_robots( $robots ) {
+	// Позначка, що плагін свій тег усе-таки друкує — щоб не додати другий.
+	$GLOBALS['scala_robots_printed'] = true;
+
 	if ( ! is_singular() || ! scala_is_thin( get_queried_object_id() ) ) {
 		return $robots;
 	}
@@ -886,12 +889,17 @@ add_filter( 'wpseo_robots', 'scala_filter_robots', 20 );
 add_filter( 'wpseo_robots_array', 'scala_filter_robots', 20 );
 
 /**
- * Те саме, коли SEO-плагіна немає.
+ * Ставить noindex сам, якщо плагін цього не зробив.
+ *
+ * Yoast на цьому сайті тег robots не друкує взагалі, тож фільтрувати
+ * нічого — фільтр просто не викликається. Тому друкуємо свій, але
+ * пізнім пріоритетом: до цієї миті плагін уже висловився, і подвійного
+ * тега не буде.
  *
  * @return void
  */
 function scala_thin_noindex(): void {
-	if ( scala_seo_plugin_active() || ! is_singular() ) {
+	if ( ! empty( $GLOBALS['scala_robots_printed'] ) || ! is_singular() ) {
 		return;
 	}
 
@@ -899,7 +907,7 @@ function scala_thin_noindex(): void {
 		echo '<meta name="robots" content="noindex, follow" />' . "\n";
 	}
 }
-add_action( 'wp_head', 'scala_thin_noindex', 1 );
+add_action( 'wp_head', 'scala_thin_noindex', 99 );
 
 /**
  * Тонкі сторінки не потрапляють у карту сайту.
