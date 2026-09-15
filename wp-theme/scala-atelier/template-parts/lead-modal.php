@@ -16,8 +16,8 @@ defined( 'ABSPATH' ) || exit;
 		<button type="button" class="modal__close" data-modal-close aria-label="<?php esc_attr_e( 'Закрити', 'scala' ); ?>">&times;</button>
 
 		<div class="eyebrow eyebrow--plain"><?php esc_html_e( 'Заявка', 'scala' ); ?></div>
-		<h2 class="modal__title" id="lead-modal-title"><?php scala_the( 'title', __( 'Отримати індивідуальний прорахунок', 'scala' ) ); ?></h2>
-		<p class="modal__text"><?php scala_the( 'note' ); ?></p>
+		<h2 class="modal__title" id="lead-modal-title" data-lead-intro><?php scala_the( 'title', __( 'Отримати індивідуальний прорахунок', 'scala' ) ); ?></h2>
+		<p class="modal__text" data-lead-intro><?php scala_the( 'note' ); ?></p>
 
 		<?php get_template_part( 'template-parts/form', null, array( 'prefix' => 'm-lead' ) ); ?>
 	</div>

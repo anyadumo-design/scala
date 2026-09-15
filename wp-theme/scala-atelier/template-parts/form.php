@@ -62,6 +62,6 @@ $scala_id = static fn( string $name ): string => $scala_prefix . '-' . $name;
 </form>
 
 <div class="form-sent" data-lead-sent hidden>
-	<div class="form-sent__title"><?php scala_the( 'sent_title', __( 'Заявку прийнято', 'scala' ) ); ?></div>
+	<div class="form-sent__title" id="<?php echo esc_attr( $scala_id( 'sent-title' ) ); ?>"><?php scala_the( 'sent_title', __( 'Заявку прийнято', 'scala' ) ); ?></div>
 	<div class="form-sent__text" data-thanks></div>
 </div>

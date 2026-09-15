@@ -344,6 +344,8 @@
       if (!form) return;
       form.hidden = false;
       if (sent) sent.hidden = true;
+      $$('[data-lead-intro]', box || modal).forEach(function (el) { el.hidden = false; });
+      modal.setAttribute('aria-labelledby', 'lead-modal-title');
       var err = $('.form__error', form);
       if (err) err.textContent = '';
       var btn = $('button[type="submit"]', form);
@@ -488,7 +490,8 @@
         }
 
         function done() {
-          var box  = form.parentNode.querySelector('[data-lead-sent]');
+          var pane = form.parentNode;
+          var box  = pane.querySelector('[data-lead-sent]');
           var slot = box ? box.querySelector('[data-thanks]') : null;
           if (slot) {
             slot.textContent =
@@ -497,8 +500,21 @@
               (phone || 'вказаним у заявці') +
               ' у робочий час, щоб узгодити дату виїзду дизайнера.';
           }
+
+          /*
+           * Ховаємо заголовок і вступ форми. Інакше над подякою лишається
+           * запрошення заповнити форму — «менеджер звʼяжеться в робочий
+           * час» двічі поспіль, майже слово в слово.
+           */
+          $$('[data-lead-intro]', pane).forEach(function (el) { el.hidden = true; });
+
           form.hidden = true;
           if (box) box.hidden = false;
+
+          // Доки видно подяку, вікно зветься нею, а не схованим заголовком.
+          var dialog = form.closest ? form.closest('dialog') : null;
+          var title  = box ? box.querySelector('.form-sent__title') : null;
+          if (dialog && title && title.id) dialog.setAttribute('aria-labelledby', title.id);
 
           /*
            * Очищаємо поля й повертаємо кнопку. Інакше наступне відкриття

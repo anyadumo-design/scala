@@ -14,11 +14,11 @@ defined( 'ABSPATH' ) || exit;
 				<span class="eyebrow__num">09</span>&nbsp;&nbsp;<?php esc_html_e( 'Заявка', 'scala' ); ?>
 			</div>
 
-			<h2 class="request__h2"><?php scala_the( 'title' ); ?></h2>
-			<p class="request__text"><?php scala_the( 'text' ); ?></p>
+			<h2 class="request__h2" data-lead-intro><?php scala_the( 'title' ); ?></h2>
+			<p class="request__text" data-lead-intro><?php scala_the( 'text' ); ?></p>
 
 			<?php if ( scala_opt( 'note' ) ) : ?>
-				<p class="request__note"><?php scala_the( 'note' ); ?></p>
+				<p class="request__note" data-lead-intro><?php scala_the( 'note' ); ?></p>
 			<?php endif; ?>
 
 			<?php get_template_part( 'template-parts/form', null, array( 'source' => __( 'Форма внизу головної', 'scala' ) ) ); ?>

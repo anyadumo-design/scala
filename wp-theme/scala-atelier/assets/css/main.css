@@ -799,6 +799,9 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
 /* display: grid перебиває [hidden] з таблиці браузера: після «Заявку
    прийнято» форма з кнопкою «Надсилаємо…» лишалась на екрані. */
 .form[hidden] { display: none; }
+/* Заголовок і вступ форми ховаються разом із нею: інакше над подякою
+   лишається запрошення заповнити форму, майже тими самими словами. */
+[data-lead-intro][hidden] { display: none; }
 .form input,
 .form select,
 .form textarea {

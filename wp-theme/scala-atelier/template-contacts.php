@@ -101,10 +101,10 @@ get_template_part(
 	<div class="request__box two-col">
 		<div class="request__pane">
 			<div class="eyebrow eyebrow--plain"><?php esc_html_e( 'Заявка', 'scala' ); ?></div>
-			<h2 class="request__h2" style="font-size:clamp(28px,3.4vw,48px);line-height:1.05;margin-top:20px">
+			<h2 class="request__h2" style="font-size:clamp(28px,3.4vw,48px);line-height:1.05;margin-top:20px" data-lead-intro>
 				<?php scala_the( 'title' ); ?>
 			</h2>
-			<p class="request__text" style="max-width:460px"><?php scala_the( 'text' ); ?></p>
+			<p class="request__text" style="max-width:460px" data-lead-intro><?php scala_the( 'text' ); ?></p>
 
 			<?php get_template_part( 'template-parts/form', null, array( 'source' => __( 'Форма на сторінці контактів', 'scala' ) ) ); ?>
 		</div>
