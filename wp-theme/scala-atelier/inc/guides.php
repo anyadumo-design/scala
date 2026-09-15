@@ -262,8 +262,10 @@ function scala_room_links(): array {
 		}
 
 		$cache[] = array(
-			'url'   => (string) get_permalink( $page ),
-			'title' => get_the_title( $page ),
+			'url' => (string) get_permalink( $page ),
+			// Коротка назва для рядка посилань: у заголовку сторінки
+			// повна фраза з містом, у рядку вона зайва.
+			'title' => (string) ( $guide['label'] ?? get_the_title( $page ) ),
 		);
 	}
 
