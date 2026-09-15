@@ -289,7 +289,14 @@
     var label  = $('.scen__state-label', stage);
     var text   = $('.scen__state-text', stage);
 
+    var current = 0;
+    var timer   = null;
+    var byHand  = false; // людина перемкнула сама — далі не крутимо
+    var still   = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     function select(i) {
+      current = i;
+
       layers.forEach(function (l, k) { l.classList.toggle('is-active', k === i); });
       btns.forEach(function (b, k) {
         b.classList.toggle('is-active', k === i);
@@ -303,12 +310,51 @@
       if (text)  text.textContent  = src.dataset.text  || '';
     }
 
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    /*
+     * Крутимо самі, поки блок на екрані. Зупиняємось, щойно людина
+     * перемкнула вручну: далі вона дивиться те, що обрала, а не те, що
+     * їй підсунув таймер. У режимі «менше руху» не крутимо взагалі.
+     */
+    function run() {
+      if (timer || byHand || still || layers.length < 2) return;
+      if (document.hidden) return;
+
+      timer = setInterval(function () {
+        select((current + 1) % layers.length);
+      }, 5000);
+    }
+
     btns.forEach(function (b, i) {
-      b.addEventListener('click', function () { select(i); });
+      b.addEventListener('click', function () {
+        byHand = true;
+        stop();
+        select(i);
+      });
     });
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { stop(); } else { run(); }
+    });
+
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { run(); } else { stop(); }
+        });
+      }, { threshold: 0.35 });
+
+      io.observe(stage);
+    } else {
+      run();
+    }
 
     select(0);
   }
+
 
   /* ------------------------------------------------------------------------
      7. Каталог — клієнтська фільтрація
