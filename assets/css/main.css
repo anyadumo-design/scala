@@ -617,7 +617,10 @@ summary::-webkit-details-marker { display: none; }
 .proj__strip.is-draggable { cursor: grab; }
 .proj__strip.is-dragging  { cursor: grabbing; scroll-behavior: auto; }
 .proj__strip.is-dragging a,
-.proj__strip.is-dragging img { pointer-events: none; }
+.proj__strip.is-dragging img,
+/* Інакше перетягування стрічки мишею закінчувалось паузою на відео. */
+.proj__strip.is-dragging video,
+.proj__strip.is-dragging button { pointer-events: none; }
 .proj__item { flex: none; width: min(52vw, 620px); }
 .proj__item--wide { width: min(74vw, 900px); }
 /* Вертикальне відео: ширина рахується від тієї ж висоти кадру, щоб
