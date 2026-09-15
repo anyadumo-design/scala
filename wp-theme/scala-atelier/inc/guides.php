@@ -337,12 +337,12 @@ function scala_guides_box( string $tab ): void {
 			<?php wp_nonce_field( 'scala_add_guides' ); ?>
 			<input type="hidden" name="action" value="scala_add_guides">
 			<button type="submit" class="button button-primary">
-				<?php esc_html_e( 'Додати чернетками', 'scala' ); ?>
+				<?php esc_html_e( 'Додати або оновити', 'scala' ); ?>
 			</button>
 		</form>
 
 		<p class="scala-tgbox__hint">
-			<?php esc_html_e( 'Матеріали додаються чернетками: прочитайте текст у розділі «Записи» і натисніть «Опублікувати», коли погодитесь із формулюваннями. Наявні записи не перезаписуються.', 'scala' ); ?>
+			<?php esc_html_e( 'Нові матеріали додаються чернетками: прочитайте текст і натисніть «Опублікувати», коли погодитесь із формулюваннями. Наявний матеріал оновлюється лише тоді, коли його не редагували вручну, — ваші правки не перезаписуються ніколи.', 'scala' ); ?>
 		</p>
 	</div>
 	<?php
