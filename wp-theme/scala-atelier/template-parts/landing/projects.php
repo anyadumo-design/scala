@@ -72,6 +72,10 @@ $scala_projects = array_merge( $scala_with_video, $scala_still );
 							?>
 							preload="none"
 							aria-label="<?php echo esc_attr( get_the_title( $scala_project ) ); ?>"></video>
+						<button type="button" class="proj__play" data-scala-video-play>
+							<span class="proj__play-icon" aria-hidden="true">&#9654;</span>
+							<span class="visually-hidden"><?php esc_html_e( 'Відтворити відео', 'scala' ); ?></span>
+						</button>
 						<button type="button" class="proj__sound" data-scala-video-sound aria-pressed="false">
 							<?php esc_html_e( 'Звук', 'scala' ); ?>
 						</button>
