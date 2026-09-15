@@ -103,23 +103,33 @@ function scala_insert_missing_guides(): array {
 			continue;
 		}
 
-		// Шукаємо в будь-якому статусі: чернетка чи кошик — теж «уже є».
+		// Матеріали журналу — записи, сторінки під кімнати — сторінки.
+		$type = 'page' === ( $guide['type'] ?? 'post' ) ? 'page' : 'post';
+
+		/*
+		 * Новий матеріал за замовчуванням лягає чернеткою: текст має
+		 * прочитати людина, перш ніж він зʼявиться на сайті. Заготовка
+		 * може попросити інакше — це свідоме рішення власниці.
+		 */
+		$status  = 'publish' === ( $guide['status'] ?? 'draft' ) ? 'publish' : 'draft';
+		$content = scala_expand_guide_links( (string) ( $guide['content'] ?? '' ) );
+		$title   = (string) ( $guide['title'] ?? $slug );
+
+		/*
+		 * Шукаємо серед записів І сторінок: слаг зайнятий у будь-якому
+		 * разі, а тип могли створити не той. Статуси перелічені явно —
+		 * 'any' не бачить кошика, а викинутий запис теж «уже є».
+		 */
 		$exists = get_posts(
 			array(
 				'name'             => $slug,
-				'post_type'        => 'post',
-				// 'any' не бачить кошика, а викинутий запис — теж «уже є».
+				'post_type'        => array( 'post', 'page' ),
 				'post_status'      => array( 'publish', 'draft', 'pending', 'private', 'future', 'trash' ),
 				'posts_per_page'   => 1,
 				'fields'           => 'ids',
 				'suppress_filters' => false,
-				// ID потрібен, щоб порівняти текст і оновити нерушений.
-
 			)
 		);
-
-		$content = scala_expand_guide_links( (string) ( $guide['content'] ?? '' ) );
-		$title   = (string) ( $guide['title'] ?? $slug );
 
 		if ( $exists ) {
 			$post_id = (int) $exists[0];
@@ -133,19 +143,31 @@ function scala_insert_missing_guides(): array {
 				continue;
 			}
 
-			// Нічого не змінилось — не чіпаємо запис і не смітимо ревізіями.
-			if ( md5( $content ) === $current ) {
+			$fields = array();
+
+			if ( md5( $content ) !== $current ) {
+				$fields['post_content'] = $content;
+				$fields['post_excerpt'] = (string) ( $guide['excerpt'] ?? '' );
+			}
+
+			// Тип могли створити не той — виправляємо, слаг лишається.
+			if ( get_post_type( $post_id ) !== $type ) {
+				$fields['post_type'] = $type;
+			}
+
+			// Чернетку, яку створила тема, публікуємо на вимогу заготовки.
+			if ( 'publish' === $status && 'draft' === get_post_status( $post_id ) ) {
+				$fields['post_status'] = 'publish';
+			}
+
+			// Нічого не змінилось — не смітимо ревізіями.
+			if ( ! $fields ) {
 				continue;
 			}
 
-			wp_update_post(
-				array(
-					'ID'           => $post_id,
-					'post_content' => $content,
-					'post_excerpt' => (string) ( $guide['excerpt'] ?? '' ),
-				)
-			);
+			$fields['ID'] = $post_id;
 
+			wp_update_post( $fields );
 			update_post_meta( $post_id, '_scala_guide_hash', md5( $content ) );
 			$updated[] = $title;
 			continue;
@@ -153,8 +175,8 @@ function scala_insert_missing_guides(): array {
 
 		$post_id = wp_insert_post(
 			array(
-				'post_type'    => 'post',
-				'post_status'  => 'draft',
+				'post_type'    => $type,
+				'post_status'  => $status,
 				'post_name'    => $slug,
 				'post_title'   => $title,
 				'post_excerpt' => (string) ( $guide['excerpt'] ?? '' ),
@@ -369,7 +391,7 @@ function scala_guides_box( string $tab ): void {
 				$exists = $slug ? get_posts(
 					array(
 						'name'           => $slug,
-						'post_type'      => $kind,
+						'post_type'      => array( 'post', 'page' ),
 						'post_status'    => array( 'publish', 'draft', 'pending', 'private', 'future', 'trash' ),
 						'posts_per_page' => 1,
 						'fields'         => 'ids',

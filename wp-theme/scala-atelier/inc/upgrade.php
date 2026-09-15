@@ -27,14 +27,15 @@ define( 'SCALA_APPLIED', 'scala_applied_version' );
  * @return void
  */
 function scala_maybe_upgrade(): void {
-	if ( wp_doing_ajax() || wp_doing_cron() || ! is_admin() ) {
+	if ( wp_doing_ajax() ) {
 		return;
 	}
 
-	if ( ! current_user_can( 'edit_posts' ) ) {
-		return;
-	}
-
+	/*
+	 * Не лише в адмінці. Інакше дія чекала б, поки власниця відкриє
+	 * панель, — а вона про це й не знає. На першому ж запиті до сайту
+	 * після оновлення теми все виконується саме.
+	 */
 	if ( SCALA_VERSION === (string) get_option( SCALA_APPLIED, '' ) ) {
 		return;
 	}
@@ -56,7 +57,7 @@ function scala_maybe_upgrade(): void {
 	update_option( SCALA_APPLIED, SCALA_VERSION, false );
 	delete_transient( 'scala_upgrading' );
 }
-add_action( 'admin_init', 'scala_maybe_upgrade' );
+add_action( 'init', 'scala_maybe_upgrade', 20 );
 
 /**
  * Звіряє матеріали з заготовками.
@@ -83,11 +84,11 @@ function scala_sync_guides(): void {
  * @return void
  */
 function scala_maybe_sync_guides(): void {
-	if ( wp_doing_ajax() || wp_doing_cron() || ! is_admin() ) {
+	if ( wp_doing_ajax() ) {
 		return;
 	}
 
-	if ( ! current_user_can( 'edit_posts' ) || get_transient( 'scala_guides_synced' ) ) {
+	if ( get_transient( 'scala_guides_synced' ) ) {
 		return;
 	}
 
@@ -98,7 +99,7 @@ function scala_maybe_sync_guides(): void {
 
 	scala_sync_guides();
 }
-add_action( 'admin_init', 'scala_maybe_sync_guides', 20 );
+add_action( 'init', 'scala_maybe_sync_guides', 21 );
 
 /**
  * Сторінка зі списком статей.
