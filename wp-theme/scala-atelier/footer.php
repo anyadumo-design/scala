@@ -113,10 +113,18 @@ $scala_socials = array_filter(
 				 */
 				$scala_extra = array();
 
-				$scala_archive = (string) get_post_type_archive_link( 'scala_type' );
+				$scala_archives = array(
+					'scala_type'    => __( 'Види штор', 'scala' ),
+					'scala_project' => __( 'Роботи', 'scala' ),
+					'scala_fabric'  => __( 'Тканини', 'scala' ),
+				);
 
-				if ( $scala_archive ) {
-					$scala_extra[ $scala_archive ] = __( 'Види штор', 'scala' );
+				foreach ( $scala_archives as $scala_pt => $scala_label ) {
+					$scala_archive = (string) get_post_type_archive_link( $scala_pt );
+
+					if ( $scala_archive ) {
+						$scala_extra[ $scala_archive ] = $scala_label;
+					}
 				}
 
 				$scala_blog_id = (int) get_option( 'page_for_posts' );

@@ -547,6 +547,15 @@ summary::-webkit-details-marker { display: none; }
 }
 .vid__btn { margin-top: 26px; }
 
+/* Відео на сторінці виду штор: вузька колонка по центру, бо поруч
+   тексту немає — на всю ширину вертикальний кадр виглядав би стіною. */
+.tp__video { display: grid; justify-items: center; gap: 12px; }
+.tp__video .vid__frame { width: min(100%, 340px); max-height: min(70vh, 620px); }
+.tp__video-cap {
+  font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--c-meta);
+}
+
 /* --------------------------------------------------------------------------
    10. CTA-смуга
    -------------------------------------------------------------------------- */

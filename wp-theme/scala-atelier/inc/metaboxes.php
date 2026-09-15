@@ -51,6 +51,12 @@ function scala_meta_schema(): array {
 					'default' => 1,
 				),
 				array(
+					'key'   => 'video',
+					'type'  => 'video',
+					'label' => __( 'Вертикальне відео', 'scala' ),
+					'help'  => __( 'Показується під головним фото. Можна обрати той самий файл, що вже завантажений для проєкту, — повторно заливати не треба.', 'scala' ),
+				),
+				array(
 					'key'   => 'lead',
 					'type'  => 'textarea',
 					'rows'  => 4,

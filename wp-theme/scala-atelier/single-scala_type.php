@@ -76,6 +76,41 @@ while ( have_posts() ) :
 		</section>
 	<?php endif; ?>
 
+	<?php
+	$scala_video_id  = (int) scala_meta( (int) get_the_ID(), 'video', 0 );
+	$scala_video_url = $scala_video_id ? (string) wp_get_attachment_url( $scala_video_id ) : '';
+	?>
+
+	<?php if ( $scala_video_url ) : ?>
+		<section class="section--m44">
+			<div class="tp__video">
+				<div class="vid__frame">
+					<video
+						class="vid__player"
+						data-scala-video
+						src="<?php echo esc_url( $scala_video_url ); ?>"
+						<?php echo has_post_thumbnail() ? 'poster="' . esc_url( (string) get_the_post_thumbnail_url( null, 'scala-md' ) ) . '"' : ''; ?>
+						muted
+						loop
+						playsinline
+						preload="none"
+						aria-label="<?php echo esc_attr( $scala_name ); ?>"></video>
+
+					<button type="button" class="vid__play" data-scala-video-play>
+						<span class="vid__play-icon" aria-hidden="true">&#9654;</span>
+						<span class="visually-hidden"><?php esc_html_e( 'Відтворити відео', 'scala' ); ?></span>
+					</button>
+
+					<button type="button" class="vid__sound" data-scala-video-sound aria-pressed="false">
+						<?php esc_html_e( 'Увімкнути звук', 'scala' ); ?>
+					</button>
+				</div>
+
+				<div class="tp__video-cap"><?php esc_html_e( 'Як це виглядає в інтерʼєрі', 'scala' ); ?></div>
+			</div>
+		</section>
+	<?php endif; ?>
+
 	<?php if ( $scala_head_blocks ) : ?>
 		<section class="section--m96">
 			<div class="tp__blocks">

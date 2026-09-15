@@ -151,6 +151,14 @@ function scala_document_title(): string {
 		return get_the_title() . $sep . $site . ( $city ? ', ' . $city : '' );
 	}
 
+	if ( is_singular( 'scala_project' ) ) {
+		return get_the_title() . $sep . __( 'реалізований проєкт', 'scala' ) . ', ' . $site;
+	}
+
+	if ( is_singular( 'scala_fabric' ) ) {
+		return get_the_title() . $sep . __( 'тканина для штор', 'scala' ) . ', ' . $site;
+	}
+
 	if ( is_singular() ) {
 		return get_the_title() . $sep . $site;
 	}
@@ -223,6 +231,16 @@ function scala_meta_description(): string {
 		}
 	}
 
+	if ( is_singular( array( 'scala_project', 'scala_fabric' ) ) ) {
+		$id   = get_queried_object_id();
+		$text = (string) scala_meta( $id, 'short', '' );
+		$text = $text ?: (string) get_the_excerpt( $id );
+
+		if ( $text ) {
+			return scala_trim_text( $text );
+		}
+	}
+
 	$leads = array(
 		'template-catalog.php'  => 'catalog_lead',
 		'template-about.php'    => 'about_lead',
@@ -261,6 +279,32 @@ function scala_meta_description(): string {
 	 * різних адрес — це не опис. Порожньо означає «хай вирішує Yoast».
 	 */
 	return '';
+}
+
+/**
+ * Чи є сторінка порожньою по суті.
+ *
+ * Проєкт і тканина — це картка з фотографією: заголовок, знімок і,
+ * якщо заповнили, короткий опис. Без опису показувати таку сторінку
+ * в пошуку нема сенсу: людина прийде на голу картинку, а Google
+ * порахує її тонкою і знизить довіру до всього сайту.
+ *
+ * Щойно для запису напишуть опис — він одразу стає повноцінною
+ * сторінкою й повертається в пошук. Нічого перемикати вручну не треба.
+ *
+ * @param int $post_id ID запису.
+ * @return bool
+ */
+function scala_is_thin( int $post_id ): bool {
+	if ( ! in_array( get_post_type( $post_id ), array( 'scala_project', 'scala_fabric' ), true ) ) {
+		return false;
+	}
+
+	$text = (string) scala_meta( $post_id, 'short', '' );
+	$text = $text ?: (string) get_post_field( 'post_excerpt', $post_id );
+	$text = $text ?: (string) get_post_field( 'post_content', $post_id );
+
+	return mb_strlen( trim( wp_strip_all_tags( $text ) ) ) < 80;
 }
 
 /**
@@ -818,6 +862,76 @@ function scala_type_json_ld(): void {
 	);
 }
 add_action( 'wp_head', 'scala_type_json_ld', 6 );
+
+/**
+ * Тонку сторінку ховаємо від пошуку.
+ *
+ * @param mixed $robots Значення від Yoast: рядок або масив.
+ * @return mixed
+ */
+function scala_filter_robots( $robots ) {
+	if ( ! is_singular() || ! scala_is_thin( get_queried_object_id() ) ) {
+		return $robots;
+	}
+
+	if ( is_array( $robots ) ) {
+		$robots['index'] = 'noindex';
+
+		return $robots;
+	}
+
+	return 'noindex, follow';
+}
+add_filter( 'wpseo_robots', 'scala_filter_robots', 20 );
+add_filter( 'wpseo_robots_array', 'scala_filter_robots', 20 );
+
+/**
+ * Те саме, коли SEO-плагіна немає.
+ *
+ * @return void
+ */
+function scala_thin_noindex(): void {
+	if ( scala_seo_plugin_active() || ! is_singular() ) {
+		return;
+	}
+
+	if ( scala_is_thin( get_queried_object_id() ) ) {
+		echo '<meta name="robots" content="noindex, follow" />' . "\n";
+	}
+}
+add_action( 'wp_head', 'scala_thin_noindex', 1 );
+
+/**
+ * Тонкі сторінки не потрапляють у карту сайту.
+ *
+ * @param array  $args      Аргументи запиту.
+ * @param string $post_type Тип запису.
+ * @return array
+ */
+function scala_sitemap_skip_thin( array $args, string $post_type ): array {
+	if ( ! in_array( $post_type, array( 'scala_project', 'scala_fabric' ), true ) ) {
+		return $args;
+	}
+
+	$ids = get_posts(
+		array(
+			'post_type'        => $post_type,
+			'post_status'      => 'publish',
+			'posts_per_page'   => -1,
+			'fields'           => 'ids',
+			'suppress_filters' => false,
+		)
+	);
+
+	$thin = array_values( array_filter( $ids, 'scala_is_thin' ) );
+
+	if ( $thin ) {
+		$args['post__not_in'] = array_merge( (array) ( $args['post__not_in'] ?? array() ), $thin );
+	}
+
+	return $args;
+}
+add_filter( 'wp_sitemaps_posts_query_args', 'scala_sitemap_skip_thin', 10, 2 );
 
 /**
  * Вбудована карта сайту WordPress: прибираємо зайве.
