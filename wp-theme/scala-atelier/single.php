@@ -46,6 +46,41 @@ while ( have_posts() ) :
 	<?php endif; ?>
 
 	<?php
+	/*
+	 * Статті вели лише на контакти: ні одна на одну, ні на види штор.
+	 * Для читача це глухий кут, для пошуковика — сторінка без ваги.
+	 */
+	$scala_more = get_posts(
+		array(
+			'post_type'        => 'post',
+			'post_status'      => 'publish',
+			'posts_per_page'   => 3,
+			'post__not_in'     => array( get_the_ID() ),
+			'orderby'          => 'date',
+			'order'            => 'DESC',
+			'suppress_filters' => false,
+		)
+	);
+	?>
+
+	<?php if ( $scala_more ) : ?>
+		<section class="section--m88">
+			<div class="eyebrow eyebrow--plain"><?php esc_html_e( 'Читайте також', 'scala' ); ?></div>
+			<div class="tp__more">
+				<?php foreach ( $scala_more as $scala_one ) : ?>
+					<a href="<?php echo esc_url( (string) get_permalink( $scala_one ) ); ?>">
+						<?php echo esc_html( get_the_title( $scala_one ) ); ?>
+						<?php $scala_sub = (string) get_the_excerpt( $scala_one ); ?>
+						<?php if ( $scala_sub ) : ?>
+							<span><?php echo esc_html( wp_trim_words( $scala_sub, 14 ) ); ?></span>
+						<?php endif; ?>
+					</a>
+				<?php endforeach; ?>
+			</div>
+		</section>
+	<?php endif; ?>
+
+	<?php
 	get_template_part(
 		'template-parts/landing/cta',
 		null,

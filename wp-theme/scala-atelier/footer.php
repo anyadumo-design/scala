@@ -106,6 +106,25 @@ $scala_socials = array_filter(
 					'contacts' => __( 'Контакти', 'scala' ),
 				);
 
+				/*
+				 * Архів видів штор і журнал у меню не потрапляли взагалі:
+				 * на них не вело жодне посилання з жодної сторінки, і
+				 * пошуковик знаходив їх лише через карту сайту.
+				 */
+				$scala_extra = array();
+
+				$scala_archive = (string) get_post_type_archive_link( 'scala_type' );
+
+				if ( $scala_archive ) {
+					$scala_extra[ $scala_archive ] = __( 'Види штор', 'scala' );
+				}
+
+				$scala_blog_id = (int) get_option( 'page_for_posts' );
+
+				if ( $scala_blog_id ) {
+					$scala_extra[ (string) get_permalink( $scala_blog_id ) ] = get_the_title( $scala_blog_id );
+				}
+
 				$scala_first = true;
 
 				foreach ( $scala_pages as $scala_key => $scala_title ) {
@@ -123,6 +142,10 @@ $scala_socials = array_filter(
 					);
 
 					$scala_first = false;
+				}
+
+				foreach ( $scala_extra as $scala_url => $scala_title ) {
+					printf( '<a href="%s">%s</a>', esc_url( $scala_url ), esc_html( $scala_title ) );
 				}
 				?>
 			</div>
