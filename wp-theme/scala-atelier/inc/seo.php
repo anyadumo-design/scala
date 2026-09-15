@@ -725,6 +725,44 @@ add_filter( 'wpseo_opengraph_desc', 'scala_filter_metadesc', 20 );
 add_filter( 'wpseo_twitter_description', 'scala_filter_metadesc', 20 );
 
 /**
+ * Просимо браузер почати вантажити головне фото одразу.
+ *
+ * Це найбільший елемент першого екрана, і саме за ним Google міряє
+ * LCP. Без підказки браузер доходить до нього аж коли розбере всю
+ * розмітку; посилання в <head> дає йому фору. Список розмірів той
+ * самий, що й у самого зображення, тож завантажується рівно той файл,
+ * який і так буде показано.
+ *
+ * @return void
+ */
+function scala_preload_hero(): void {
+	if ( ! is_front_page() ) {
+		return;
+	}
+
+	$id = (int) scala_opt( 'room_image', 0 );
+
+	if ( ! $id ) {
+		return;
+	}
+
+	$src = wp_get_attachment_image_url( $id, 'scala-lg' );
+
+	if ( ! $src ) {
+		return;
+	}
+
+	$srcset = wp_get_attachment_image_srcset( $id, 'scala-lg' );
+
+	printf(
+		'<link rel="preload" as="image" href="%s"%s imagesizes="100vw" fetchpriority="high" />' . "\n",
+		esc_url( $src ),
+		$srcset ? ' imagesrcset="' . esc_attr( $srcset ) . '"' : ''
+	);
+}
+add_action( 'wp_head', 'scala_preload_hero', 1 );
+
+/**
  * Картинка для соцмереж.
  *
  * @return string
