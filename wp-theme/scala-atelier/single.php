@@ -44,7 +44,20 @@ while ( have_posts() ) :
 	<?php if ( has_post_thumbnail() ) : ?>
 		<section class="section--m44">
 			<div class="about__hero">
-				<?php the_post_thumbnail( 'scala-lg', array( 'sizes' => '100vw' ) ); ?>
+				<?php
+				/*
+				 * Опис alt: у завантажених файлах він порожній, а картинка
+				 * без опису — це і втрачений сигнал для пошуку, і порожнє
+				 * місце для того, хто читає екранним зчитувачем.
+				 */
+				the_post_thumbnail(
+					'scala-lg',
+					array(
+						'sizes' => '100vw',
+						'alt'   => get_the_title(),
+					)
+				);
+				?>
 			</div>
 		</section>
 	<?php endif; ?>
@@ -56,6 +69,17 @@ while ( have_posts() ) :
 			</div>
 		</section>
 	<?php endif; ?>
+
+	<?php
+	// Ті самі картки, що під сторінками кімнат: стаття посилається на
+	// види штор, тож показуємо їх і зображеннями теж.
+	if ( function_exists( 'scala_types_in_content' ) ) {
+		scala_render_room_types(
+			scala_types_in_content( apply_filters( 'the_content', get_the_content() ) ),
+			function_exists( 'scala_keyphrase_for' ) ? scala_keyphrase_for( (int) get_the_ID() ) : ''
+		);
+	}
+	?>
 
 	<?php $scala_rooms = function_exists( 'scala_room_links' ) ? scala_room_links() : array(); ?>
 
