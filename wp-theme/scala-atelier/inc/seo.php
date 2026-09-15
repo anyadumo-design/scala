@@ -369,6 +369,39 @@ function scala_types_summary(): string {
 }
 
 /**
+ * Опис конкретного запису — поза поточним запитом.
+ *
+ * Потрібен, щоб заповнити порожнє поле опису в SEO-плагіні: там має
+ * стояти той самий текст, який тема й так показує в розмітці, інакше
+ * в редакторі здається, ніби нічого не заповнено.
+ *
+ * @param int $post_id ID запису.
+ * @return string
+ */
+function scala_description_for( int $post_id ): string {
+	$type = (string) get_post_type( $post_id );
+
+	if ( 'scala_type' === $type ) {
+		$text = (string) scala_meta( $post_id, 'lead', '' );
+		$text = $text ?: (string) scala_meta( $post_id, 'short', '' );
+	} elseif ( in_array( $type, array( 'scala_project', 'scala_fabric' ), true ) ) {
+		$text = (string) scala_meta( $post_id, 'short', '' );
+	} else {
+		$text = '';
+	}
+
+	if ( ! $text ) {
+		$text = (string) get_post_field( 'post_excerpt', $post_id );
+	}
+
+	if ( ! $text ) {
+		$text = strip_shortcodes( (string) get_post_field( 'post_content', $post_id ) );
+	}
+
+	return scala_trim_text( $text );
+}
+
+/**
  * Ріже текст під сніпет: по межі слова, без обірваних слів.
  *
  * @param string $text Сирий текст, можливо з тегами.

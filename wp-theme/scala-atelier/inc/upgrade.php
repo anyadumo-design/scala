@@ -53,6 +53,7 @@ function scala_maybe_upgrade(): void {
 
 	scala_ensure_blog_page();
 	scala_sync_guides();
+	scala_fill_seo_fields();
 
 	update_option( SCALA_APPLIED, SCALA_VERSION, false );
 	delete_transient( 'scala_upgrading' );
@@ -100,6 +101,46 @@ function scala_maybe_sync_guides(): void {
 	scala_sync_guides();
 }
 add_action( 'init', 'scala_maybe_sync_guides', 21 );
+
+/**
+ * Заповнює порожні поля опису в SEO-плагіні.
+ *
+ * Тема й так підставляє опис у розмітку, коли поле порожнє. Але в
+ * редакторі воно виглядає незаповненим, і зрозуміти, чи все гаразд,
+ * неможливо. Тому переносимо той самий текст у саме поле: тепер його
+ * видно, і його можна відредагувати.
+ *
+ * Заповнене людиною не чіпаємо ніколи.
+ *
+ * @return void
+ */
+function scala_fill_seo_fields(): void {
+	if ( ! function_exists( 'scala_description_for' ) ) {
+		return;
+	}
+
+	$ids = get_posts(
+		array(
+			'post_type'        => array( 'post', 'page', 'scala_type' ),
+			'post_status'      => 'publish',
+			'posts_per_page'   => 200,
+			'fields'           => 'ids',
+			'suppress_filters' => false,
+		)
+	);
+
+	foreach ( $ids as $id ) {
+		if ( '' !== trim( (string) get_post_meta( $id, '_yoast_wpseo_metadesc', true ) ) ) {
+			continue;
+		}
+
+		$text = scala_description_for( (int) $id );
+
+		if ( '' !== $text ) {
+			update_post_meta( $id, '_yoast_wpseo_metadesc', $text );
+		}
+	}
+}
 
 /**
  * Сторінка зі списком статей.
