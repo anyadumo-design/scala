@@ -12,6 +12,18 @@ get_header();
 <section class="section--sub">
 	<div class="eyebrow eyebrow--plain"><?php esc_html_e( 'Каталог', 'scala' ); ?></div>
 	<h1 class="h1-page balance"><?php post_type_archive_title(); ?></h1>
+
+	<?php
+	// Провідник для тих, хто ще не знає, який тип шукає.
+	$scala_guide = is_post_type_archive( 'scala_type' ) ? scala_guide_link() : null;
+	?>
+
+	<?php if ( $scala_guide ) : ?>
+		<p class="lead" style="margin-top:18px">
+			<?php esc_html_e( 'Не знаєте, який тип обрати?', 'scala' ); ?>
+			<a href="<?php echo esc_url( $scala_guide['url'] ); ?>"><?php echo esc_html( $scala_guide['title'] ); ?></a>
+		</p>
+	<?php endif; ?>
 </section>
 
 <section class="section" style="padding-top:28px">

@@ -69,6 +69,43 @@ function scala_insert_missing_guides(): array {
 }
 
 /**
+ * Посилання на матеріал, якщо він опублікований.
+ *
+ * Поки запис лежить чернеткою, повертає null — і шаблон не малює
+ * нічого. Так посилання не веде в нікуди до того, як текст прочитали
+ * й випустили на сайт.
+ *
+ * @param string $slug Слаг матеріалу.
+ * @return array|null Ключі url і title.
+ */
+function scala_guide_link( string $slug = 'yaki-shtory-obraty' ): ?array {
+	static $cache = array();
+
+	if ( array_key_exists( $slug, $cache ) ) {
+		return $cache[ $slug ];
+	}
+
+	$found = get_posts(
+		array(
+			'name'             => $slug,
+			'post_type'        => 'post',
+			'post_status'      => 'publish',
+			'posts_per_page'   => 1,
+			'suppress_filters' => false,
+		)
+	);
+
+	$cache[ $slug ] = $found
+		? array(
+			'url'   => (string) get_permalink( $found[0] ),
+			'title' => get_the_title( $found[0] ),
+		)
+		: null;
+
+	return $cache[ $slug ];
+}
+
+/**
  * Обробник кнопки.
  *
  * @return void

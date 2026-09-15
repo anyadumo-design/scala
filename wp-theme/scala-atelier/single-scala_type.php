@@ -179,6 +179,14 @@ while ( have_posts() ) :
 					</a>
 				<?php endforeach; ?>
 			</div>
+
+			<?php $scala_guide = scala_guide_link(); ?>
+
+			<?php if ( $scala_guide ) : ?>
+				<p class="lead" style="margin-top:22px">
+					<a href="<?php echo esc_url( $scala_guide['url'] ); ?>"><?php echo esc_html( $scala_guide['title'] ); ?></a>
+				</p>
+			<?php endif; ?>
 		</section>
 	<?php endif; ?>
 
