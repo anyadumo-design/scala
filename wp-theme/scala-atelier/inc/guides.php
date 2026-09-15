@@ -249,6 +249,31 @@ function scala_insert_missing_guides(): array {
 }
 
 /**
+ * Чи цей запис створений із заготовки теми.
+ *
+ * Потрібно, щоб відрізнити власні матеріали від сторінок, які писала
+ * людина: у своїх ми можемо виправляти те, що самі ж і записали.
+ *
+ * @param int $post_id ID запису.
+ * @return bool
+ */
+function scala_is_seeded_guide( int $post_id ): bool {
+	$slug = (string) get_post_field( 'post_name', $post_id );
+
+	if ( '' === $slug ) {
+		return false;
+	}
+
+	foreach ( scala_guide_seed_data() as $guide ) {
+		if ( $slug === ( $guide['slug'] ?? '' ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * Посилання на матеріал, якщо він опублікований.
  *
  * Поки запис лежить чернеткою, повертає null — і шаблон не малює

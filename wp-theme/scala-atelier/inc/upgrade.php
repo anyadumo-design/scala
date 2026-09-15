@@ -156,7 +156,14 @@ function scala_fill_seo_fields(): void {
 			 */
 			$ours = (string) get_post_meta( $id, '_scala_seo_' . ltrim( $key, '_' ), true );
 
-			if ( '' !== $now && md5( $now ) !== $ours ) {
+			/*
+			 * Перші заповнення робились ще без відбитка, тож у них
+			 * $ours порожній. Для сторінок, які створила сама тема,
+			 * це наше ж значення — його можна виправити.
+			 */
+			$seeded = function_exists( 'scala_is_seeded_guide' ) && scala_is_seeded_guide( $id );
+
+			if ( '' !== $now && md5( $now ) !== $ours && ! ( '' === $ours && $seeded ) ) {
 				continue;
 			}
 
