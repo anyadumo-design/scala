@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCALA_VERSION', '1.30.0' );
+define( 'SCALA_VERSION', '1.31.0' );
 define( 'SCALA_DIR', get_template_directory() );
 define( 'SCALA_URI', get_template_directory_uri() );
 
@@ -18,6 +18,7 @@ require_once SCALA_DIR . '/inc/compat.php';
 require_once SCALA_DIR . '/inc/helpers.php';
 require_once SCALA_DIR . '/inc/setup.php';
 require_once SCALA_DIR . '/inc/enqueue.php';
+require_once SCALA_DIR . '/inc/assets-cleanup.php';
 require_once SCALA_DIR . '/inc/fields.php';
 require_once SCALA_DIR . '/inc/options-schema.php';
 require_once SCALA_DIR . '/inc/options-page.php';
