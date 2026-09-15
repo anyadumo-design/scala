@@ -394,8 +394,31 @@ function scala_description_for( int $post_id ): string {
 		$text = (string) get_post_field( 'post_excerpt', $post_id );
 	}
 
+	/*
+	 * Сторінки з власним шаблоном — «Каталог», «Про бренд», «Контакти» —
+	 * тримають текст у налаштуваннях теми, а поле вмісту в них порожнє.
+	 * Без цього опис для них не збирався взагалі.
+	 */
+	if ( ! $text ) {
+		$leads = array(
+			'template-catalog.php'  => 'catalog_lead',
+			'template-about.php'    => 'about_lead',
+			'template-contacts.php' => 'contacts_lead',
+		);
+
+		$template = (string) get_page_template_slug( $post_id );
+
+		if ( isset( $leads[ $template ] ) ) {
+			$text = (string) scala_opt( $leads[ $template ], '' );
+		}
+	}
+
 	if ( ! $text ) {
 		$text = strip_shortcodes( (string) get_post_field( 'post_content', $post_id ) );
+	}
+
+	if ( ! $text && (int) get_option( 'page_on_front' ) === $post_id ) {
+		$text = (string) scala_opt( 'sub', '' );
 	}
 
 	return scala_trim_text( $text );
@@ -493,8 +516,16 @@ function scala_keyphrase_for( int $post_id ): string {
 		return $known[ $slug ];
 	}
 
-	if ( 'template-catalog.php' === (string) get_page_template_slug( $post_id ) ) {
-		return __( 'каталог тканин для штор', 'scala' );
+	$by_template = array(
+		'template-catalog.php'  => __( 'каталог тканин для штор', 'scala' ),
+		'template-about.php'    => __( 'ательє штор scala', 'scala' ),
+		'template-contacts.php' => __( 'замовити штори в києві', 'scala' ),
+	);
+
+	$template = (string) get_page_template_slug( $post_id );
+
+	if ( isset( $by_template[ $template ] ) ) {
+		return $by_template[ $template ];
 	}
 
 	$name = wp_strip_all_tags( get_the_title( $post_id ) );
