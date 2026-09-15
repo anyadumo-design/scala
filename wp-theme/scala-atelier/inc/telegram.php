@@ -241,6 +241,13 @@ function scala_telegram_lead( int $post_id, array $data ): void {
 		$lines[] = '<b>' . scala_telegram_esc( $label ) . ':</b> ' . ( '' !== $value ? scala_telegram_esc( $value ) : '—' );
 	}
 
+	// Звідки прийшли: канал, кампанія, перша сторінка.
+	$traffic = isset( $data['traffic'] ) && is_array( $data['traffic'] ) ? $data['traffic'] : array();
+
+	foreach ( scala_traffic_rows( $traffic ) as $label => $value ) {
+		$lines[] = '<b>' . scala_telegram_esc( $label ) . ':</b> ' . scala_telegram_esc( scala_telegram_cut( $value, 300 ) );
+	}
+
 	/*
 	 * Посилання збираємо самі, без get_edit_post_link(): той перевіряє
 	 * права поточного користувача, а тут це відвідувач сайту, і для

@@ -89,8 +89,12 @@ function scala_handle_lead(): void {
 	update_post_meta( $post_id, '_scala_source', $src );
 	update_post_meta( $post_id, '_scala_source_label', $label );
 
+	// Звідки прийшли: UTM-мітки, перехід, перша сторінка сеансу.
+	$traffic = scala_collect_traffic();
+	update_post_meta( $post_id, '_scala_traffic', $traffic );
+
 	// 6. Лист.
-	scala_notify_lead( $name, $phone, $need, $note, $src, $label );
+	scala_notify_lead( $name, $phone, $need, $note, $src, $label, $traffic );
 
 	/**
 	 * Для інтеграцій: CRM, Telegram-бот тощо.
@@ -101,7 +105,7 @@ function scala_handle_lead(): void {
 	do_action(
 		'scala_lead_received',
 		$post_id,
-		compact( 'name', 'phone', 'need', 'note', 'src', 'label' )
+		compact( 'name', 'phone', 'need', 'note', 'src', 'label', 'traffic' )
 	);
 
 	wp_send_json_success( array( 'id' => $post_id ) );
@@ -145,15 +149,16 @@ function scala_normalize_phone( string $raw ): string {
 /**
  * Надсилає лист про нову заявку.
  *
- * @param string $name  Імʼя.
- * @param string $phone Телефон.
- * @param string $need  Що потрібно.
- * @param string $note  Коментар.
- * @param string $src   Сторінка-джерело.
- * @param string $label Блок, з якого відкрито форму.
+ * @param string $name    Імʼя.
+ * @param string $phone   Телефон.
+ * @param string $need    Що потрібно.
+ * @param string $note    Коментар.
+ * @param string $src     Сторінка-джерело.
+ * @param string $label   Блок, з якого відкрито форму.
+ * @param array  $traffic Звідки прийшли: UTM-мітки, перехід, перша сторінка.
  * @return void
  */
-function scala_notify_lead( string $name, string $phone, string $need, string $note, string $src, string $label = '' ): void {
+function scala_notify_lead( string $name, string $phone, string $need, string $note, string $src, string $label = '', array $traffic = array() ): void {
 	$to = (string) scala_opt( 'notify_email', '' );
 
 	if ( ! $to ) {
@@ -176,9 +181,14 @@ function scala_notify_lead( string $name, string $phone, string $need, string $n
 		__( 'Коментар:', 'scala' ) . ' ' . ( $note ?: '—' ),
 		__( 'Звідки:', 'scala' ) . ' ' . ( $label ?: '—' ),
 		__( 'Сторінка:', 'scala' ) . ' ' . ( $src ?: '—' ),
-		'',
-		__( 'Усі заявки:', 'scala' ) . ' ' . admin_url( 'edit.php?post_type=scala_lead' ),
 	);
+
+	foreach ( scala_traffic_rows( $traffic ) as $traffic_label => $traffic_value ) {
+		$lines[] = $traffic_label . ': ' . $traffic_value;
+	}
+
+	$lines[] = '';
+	$lines[] = __( 'Усі заявки:', 'scala' ) . ' ' . admin_url( 'edit.php?post_type=scala_lead' );
 
 	wp_mail(
 		array_map( 'trim', explode( ',', $to ) ),

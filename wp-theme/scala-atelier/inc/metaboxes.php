@@ -322,6 +322,9 @@ function scala_render_lead_box( $post ): void {
 		__( 'Отримано', 'scala' )  => get_the_date( 'd.m.Y H:i', $post ),
 	);
 
+	$traffic = scala_meta( $post->ID, 'traffic', array() );
+	$rows    = array_merge( $rows, scala_traffic_rows( is_array( $traffic ) ? $traffic : array(), true ) );
+
 	echo '<table class="widefat striped scala-lead">';
 
 	foreach ( $rows as $label => $value ) {
@@ -358,6 +361,7 @@ function scala_lead_columns( array $columns ): array {
 		'scala_phone'  => __( 'Телефон', 'scala' ),
 		'scala_need'   => __( 'Потрібно', 'scala' ),
 		'scala_from'   => __( 'Звідки', 'scala' ),
+		'scala_channel' => __( 'Канал', 'scala' ),
 		'date'         => __( 'Отримано', 'scala' ),
 	);
 }
@@ -391,6 +395,12 @@ function scala_lead_column_content( string $column, int $post_id ): void {
 
 	if ( 'scala_from' === $column ) {
 		echo esc_html( (string) scala_meta( $post_id, 'source_label', '—' ) );
+	}
+
+	if ( 'scala_channel' === $column ) {
+		$traffic = scala_meta( $post_id, 'traffic', array() );
+
+		echo esc_html( scala_traffic_channel( is_array( $traffic ) ? $traffic : array() ) );
 	}
 }
 add_action( 'manage_scala_lead_posts_custom_column', 'scala_lead_column_content', 10, 2 );

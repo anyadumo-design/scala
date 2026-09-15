@@ -463,7 +463,62 @@
 
   /* ------------------------------------------------------------------------
      8. Форма заявки
+
+     Перед самою формою — памʼять про джерело. Мітки utm_* з адреси,
+     перехід з іншого сайту й перша сторінка сеансу зберігаються на час
+     візиту і йдуть разом із заявкою: інакше в листі видно тільки
+     сторінку, з якої натиснули кнопку, а не рекламу, що привела людину.
      ------------------------------------------------------------------------ */
+  var TRAFFIC_KEY  = 'scala_traffic';
+  var TRAFFIC_TAGS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'fbclid'];
+
+  // sessionStorage може бути недоступним (приватне вікно, заборона
+  // даних сайту) — тоді просто працюємо без міток.
+  function trafficRead() {
+    try { return JSON.parse(sessionStorage.getItem(TRAFFIC_KEY) || 'null') || null; }
+    catch (e) { return null; }
+  }
+
+  function trafficWrite(data) {
+    try { sessionStorage.setItem(TRAFFIC_KEY, JSON.stringify(data)); } catch (e) {}
+  }
+
+  function queryParam(name) {
+    var found = new RegExp('[?&]' + name + '=([^&#]*)').exec(location.search);
+    if (!found) return '';
+    try { return decodeURIComponent(found[1].replace(/\+/g, ' ')).trim().slice(0, 200); }
+    catch (e) { return found[1].slice(0, 200); }
+  }
+
+  function initTraffic() {
+    var saved = trafficRead() || {};
+    var tags  = {};
+    var fresh = false;
+
+    TRAFFIC_TAGS.forEach(function (tag) {
+      var value = queryParam(tag);
+      if (value) { tags[tag] = value; fresh = true; }
+    });
+
+    var views = (saved.views || 0) + 1;
+
+    /*
+     * Нова кампанія перебиває попередню: якщо людина повернулась
+     * через інше оголошення, заявку привело саме воно.
+     */
+    if (fresh || !saved.landing) {
+      var ref = document.referrer || '';
+      if (ref.indexOf(location.origin) === 0) ref = '';
+
+      saved = tags;
+      if (ref) saved.referrer = ref.slice(0, 300);
+      saved.landing = (location.origin + location.pathname + location.search).slice(0, 300);
+    }
+
+    saved.views = views;
+    trafficWrite(saved);
+  }
+
   function initForms() {
     $$('form[data-lead-form]').forEach(function (form) {
       form.addEventListener('submit', function (ev) {
@@ -550,6 +605,11 @@
 
         data.append('action', 'scala_lead');
         data.append('nonce', window.SCALA.nonce || '');
+
+        var traffic = trafficRead() || {};
+        Object.keys(traffic).forEach(function (key) {
+          if (traffic[key] !== '' && traffic[key] != null) data.append(key, traffic[key]);
+        });
 
         fetch(window.SCALA.ajaxUrl, { method: 'POST', body: data, credentials: 'same-origin' })
           .then(function (r) { return r.json(); })
@@ -690,6 +750,7 @@
      Старт
      ------------------------------------------------------------------------ */
   function init() {
+    initTraffic();
     initHero();
     initCursor();
     initReveal();
