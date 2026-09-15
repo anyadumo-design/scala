@@ -421,7 +421,48 @@ function scala_description_for( int $post_id ): string {
 		$text = (string) scala_opt( 'sub', '' );
 	}
 
+	/*
+	 * Проєкт без власного опису: збираємо зі згадки виду штор, який на
+	 * ньому показано. Нічого про сам обʼєкт не вигадуємо — беремо опис
+	 * конструкції зі сторінки цього виду.
+	 */
+	if ( ! $text && 'scala_project' === $type ) {
+		$text = scala_project_fallback_text( $post_id );
+	}
+
 	return scala_trim_text( $text );
+}
+
+/**
+ * Запасний опис проєкту з назви й виду штор на ньому.
+ *
+ * @param int $post_id ID проєкту.
+ * @return string
+ */
+function scala_project_fallback_text( int $post_id ): string {
+	$name = get_the_title( $post_id );
+	$city = trim( wp_strip_all_tags( (string) scala_opt( 'city', '' ) ) );
+
+	foreach ( scala_posts( 'scala_type' ) as $type ) {
+		$stem = mb_substr( mb_strtolower( get_the_title( $type ) ), 0, 5 );
+
+		if ( '' === $stem || false === mb_strpos( mb_strtolower( $name ), $stem ) ) {
+			continue;
+		}
+
+		$short = trim( wp_strip_all_tags( (string) scala_meta( $type->ID, 'short', '' ) ) );
+
+		if ( $short ) {
+			/* translators: 1 — назва проєкту, 2 — опис виду штор */
+			return sprintf( __( '%1$s — реалізований проєкт SCALA. %2$s', 'scala' ), $name, $short );
+		}
+	}
+
+	return $city
+		/* translators: 1 — назва проєкту, 2 — місто */
+		? sprintf( __( '%1$s — реалізований проєкт ательє SCALA: пошиття, карниз і монтаж під конкретні вікна, %2$s.', 'scala' ), $name, $city )
+		/* translators: %s — назва проєкту */
+		: sprintf( __( '%s — реалізований проєкт ательє SCALA: пошиття, карниз і монтаж під конкретні вікна.', 'scala' ), $name );
 }
 
 /**
