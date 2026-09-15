@@ -147,11 +147,25 @@ function scala_fill_seo_fields(): void {
 				continue;
 			}
 
-			if ( '' !== trim( (string) get_post_meta( $id, $key, true ) ) ) {
+			$now = trim( (string) get_post_meta( $id, $key, true ) );
+
+			/*
+			 * Порожнє заповнюємо. Непорожнє чіпаємо лише тоді, коли це
+			 * рівно те, що ми самі й записали минулого разу: свої
+			 * формулювання можна покращувати, чужі — ні.
+			 */
+			$ours = (string) get_post_meta( $id, '_scala_seo_' . ltrim( $key, '_' ), true );
+
+			if ( '' !== $now && md5( $now ) !== $ours ) {
+				continue;
+			}
+
+			if ( $now === $value ) {
 				continue;
 			}
 
 			update_post_meta( $id, $key, $value );
+			update_post_meta( $id, '_scala_seo_' . ltrim( $key, '_' ), md5( $value ) );
 		}
 	}
 }

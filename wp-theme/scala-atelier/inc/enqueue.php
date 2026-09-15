@@ -113,3 +113,30 @@ function scala_enqueue_admin( string $hook ): void {
 	);
 }
 add_action( 'admin_enqueue_scripts', 'scala_enqueue_admin' );
+
+/**
+ * Шрифти не мають затримувати перший показ.
+ *
+ * Стиль із fonts.googleapis.com — це чужий домен: окреме зʼєднання,
+ * окремий DNS, і показ сторінки чекає на них. Вантажимо його як
+ * друкований (браузер не блокує показ), а після завантаження
+ * перемикаємо на звичайний. Без JS лишається звичайне посилання.
+ *
+ * @param string $tag    Готовий тег.
+ * @param string $handle Дескриптор стилю.
+ * @return string
+ */
+function scala_async_font_style( string $tag, string $handle ): string {
+	if ( 'scala-font' !== $handle || is_admin() ) {
+		return $tag;
+	}
+
+	$async = str_replace(
+		"media='all'",
+		"media='print' onload=\"this.media='all'\"",
+		$tag
+	);
+
+	return $async . '<noscript>' . $tag . '</noscript>';
+}
+add_filter( 'style_loader_tag', 'scala_async_font_style', 10, 2 );

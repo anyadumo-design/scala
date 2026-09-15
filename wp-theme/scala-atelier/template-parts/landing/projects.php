@@ -65,8 +65,12 @@ $scala_projects = array_merge( $scala_with_video, $scala_still );
 							muted
 							loop
 							playsinline
-							<?php // Без обкладинки беремо перший кадр самого відео, інакше картка стоїть чорна. ?>
-							preload="<?php echo $scala_poster ? 'none' : 'metadata'; ?>"
+							<?php
+							// preload=metadata на семи картках тягнув мегабайти ще до
+							// того, як людина догорнула до стрічки. Вантажимо лише те,
+							// що справді почало грати.
+							?>
+							preload="none"
 							aria-label="<?php echo esc_attr( get_the_title( $scala_project ) ); ?>"></video>
 						<button type="button" class="proj__sound" data-scala-video-sound aria-pressed="false">
 							<?php esc_html_e( 'Звук', 'scala' ); ?>

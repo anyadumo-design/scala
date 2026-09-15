@@ -512,7 +512,7 @@ function scala_keyphrase_for( int $post_id ): string {
  * @param int    $max  Скільки символів лишити.
  * @return string
  */
-function scala_trim_text( string $text, int $max = 158 ): string {
+function scala_trim_text( string $text, int $max = 155 ): string {
 	$text = wp_strip_all_tags( $text );
 	$text = wp_specialchars_decode( $text, ENT_QUOTES );
 	$text = trim( preg_replace( '~\s+~u', ' ', $text ) );

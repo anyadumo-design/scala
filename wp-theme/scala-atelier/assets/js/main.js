@@ -529,6 +529,17 @@
 
     var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    /*
+     * Економія трафіку. Вертикальне відео важить мегабайти, і вмикати
+     * його автоматично на повільному зʼєднанні або з увімкненою
+     * економією — це витрачати чужі гроші. Кнопка лишається: хто хоче,
+     * подивиться.
+     */
+    var net  = navigator.connection || {};
+    var slow = !!net.saveData || /^([23]g|slow-2g)$/.test(net.effectiveType || '');
+
+    if (slow) still = true;
+
     function play(v) {
       if (v.preload === 'none') { v.preload = 'metadata'; }
       var p = v.play();
