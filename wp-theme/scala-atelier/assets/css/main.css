@@ -991,9 +991,17 @@ details[open] > summary .f-plus { transform: rotate(45deg); }
   .form textarea { padding: 11px 2px; font-size: 15.5px; }
   .form textarea { rows: 2; min-height: 0; }
   .form button[type="submit"] { margin-top: 8px; padding: 15px; }
-  .form__group { margin-top: 6px; }
-  .form__legend { margin-bottom: 7px; }
-  .form__choice span { min-height: 34px; padding: 6px 13px; font-size: 13.5px; }
+  .form__group { margin-top: 4px; }
+  .form__legend { margin-bottom: 6px; }
+  .form__choice span { min-height: 31px; padding: 5px 12px; font-size: 13px; }
+  .form textarea { min-height: 44px; height: 44px; }
+  /*
+   * Позначки «Що потрібно» й «Тип приміщення» додали блоку ~170 px, і
+   * на ноутбуці 1280×700 кнопка пішла за край екрана. Примітку про
+   * дзвінок менеджера на низькому екрані прибираємо: те саме людина
+   * прочитає в подяці одразу після відправки.
+   */
+  .request__note { display: none; }
 }
 
 /* Honeypot — прихований від людей, видимий ботам */
