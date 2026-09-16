@@ -197,7 +197,10 @@ $scala_bar_href = $scala_is_home
 		<?php esc_html_e( 'Запросити дизайнера', 'scala' ); ?>
 	</a>
 	<?php if ( $scala_phone ) : ?>
-		<a href="tel:<?php echo esc_attr( scala_tel( $scala_phone ) ); ?>" class="mobile-bar__call" aria-label="<?php esc_attr_e( 'Подзвонити', 'scala' ); ?>">&#9742;</a>
+		<a href="tel:<?php echo esc_attr( scala_tel( $scala_phone ) ); ?>" class="mobile-bar__call" aria-label="<?php esc_attr_e( 'Подзвонити', 'scala' ); ?>">
+			<?php // Символ ☎ на iPhone малюється кольоровим емодзі — тому лінійна іконка. ?>
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.1 4.2 2 2 0 0 1 3.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L7.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.8 2z"/></svg>
+		</a>
 	<?php endif; ?>
 </div>
 

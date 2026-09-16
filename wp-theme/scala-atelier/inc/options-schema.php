@@ -460,7 +460,20 @@ function scala_options_schema(): array {
 				array(
 					'key'       => 'needs',
 					'type'      => 'repeater',
-					'label'     => __( 'Варіанти у списку «Що потрібно оформити»', 'scala' ),
+					'label'     => __( 'Варіанти «Що потрібно оформити» (можна обрати кілька)', 'scala' ),
+					'row_label' => __( 'Варіант', 'scala' ),
+					'fields'    => array(
+						array(
+							'key'   => 'text',
+							'type'  => 'text',
+							'label' => __( 'Назва', 'scala' ),
+						),
+					),
+				),
+				array(
+					'key'       => 'places',
+					'type'      => 'repeater',
+					'label'     => __( 'Варіанти «Тип приміщення» (обирають один)', 'scala' ),
 					'row_label' => __( 'Варіант', 'scala' ),
 					'fields'    => array(
 						array(

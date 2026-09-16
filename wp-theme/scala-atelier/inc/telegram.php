@@ -228,7 +228,8 @@ function scala_telegram_lead( int $post_id, array $data ): void {
 	$rows = array(
 		__( 'Імʼя', 'scala' )     => scala_telegram_cut( $data['name'] ?? '', 200 ),
 		__( 'Телефон', 'scala' )  => scala_telegram_cut( $data['phone'] ?? '', 50 ),
-		__( 'Потрібно', 'scala' ) => scala_telegram_cut( $data['need'] ?? '', 200 ),
+		__( 'Потрібно', 'scala' ) => scala_telegram_cut( $data['need'] ?? '', 400 ),
+		__( 'Приміщення', 'scala' ) => scala_telegram_cut( $data['place'] ?? '', 60 ),
 		__( 'Коментар', 'scala' ) => scala_telegram_cut( $data['note'] ?? '', 2000 ),
 		__( 'Звідки', 'scala' )   => scala_telegram_cut( $data['label'] ?? '', 200 ),
 		__( 'Сторінка', 'scala' ) => scala_telegram_cut( $data['src'] ?? '', 500 ),

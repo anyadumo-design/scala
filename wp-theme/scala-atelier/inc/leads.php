@@ -41,7 +41,17 @@ function scala_handle_lead(): void {
 	// 4. Дані.
 	$name  = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 	$phone = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
-	$need  = isset( $_POST['need'] ) ? sanitize_text_field( wp_unslash( $_POST['need'] ) ) : '';
+	/*
+	 * «Що потрібно» — кілька позначок, приходить масивом need[]. Один
+	 * рядок теж приймаємо: сторінка могла бути відкрита ще до оновлення,
+	 * коли тут був випадаючий список.
+	 */
+	$need_raw = isset( $_POST['need'] ) ? wp_unslash( $_POST['need'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	$need     = implode(
+		', ',
+		array_slice( array_filter( array_map( 'sanitize_text_field', (array) $need_raw ), 'strlen' ), 0, 12 )
+	);
+	$place    = isset( $_POST['place'] ) ? mb_substr( sanitize_text_field( wp_unslash( $_POST['place'] ) ), 0, 60 ) : '';
 	$note  = isset( $_POST['note'] ) ? sanitize_textarea_field( wp_unslash( $_POST['note'] ) ) : '';
 	$src   = isset( $_POST['source'] ) ? esc_url_raw( wp_unslash( $_POST['source'] ) ) : '';
 	// Назва блоку, з якого відкрито форму: «Hero — головна кнопка» тощо.
@@ -85,6 +95,7 @@ function scala_handle_lead(): void {
 	update_post_meta( $post_id, '_scala_name', $name );
 	update_post_meta( $post_id, '_scala_phone', $phone );
 	update_post_meta( $post_id, '_scala_need', $need );
+	update_post_meta( $post_id, '_scala_place', $place );
 	update_post_meta( $post_id, '_scala_note', $note );
 	update_post_meta( $post_id, '_scala_source', $src );
 	update_post_meta( $post_id, '_scala_source_label', $label );
@@ -94,7 +105,7 @@ function scala_handle_lead(): void {
 	update_post_meta( $post_id, '_scala_traffic', $traffic );
 
 	// 6. Лист.
-	scala_notify_lead( $name, $phone, $need, $note, $src, $label, $traffic );
+	scala_notify_lead( $name, $phone, $need, $note, $src, $label, $traffic, $place );
 
 	/**
 	 * Для інтеграцій: CRM, Telegram-бот тощо.
@@ -105,7 +116,7 @@ function scala_handle_lead(): void {
 	do_action(
 		'scala_lead_received',
 		$post_id,
-		compact( 'name', 'phone', 'need', 'note', 'src', 'label', 'traffic' )
+		compact( 'name', 'phone', 'need', 'place', 'note', 'src', 'label', 'traffic' )
 	);
 
 	wp_send_json_success( array( 'id' => $post_id ) );
@@ -156,9 +167,10 @@ function scala_normalize_phone( string $raw ): string {
  * @param string $src     Сторінка-джерело.
  * @param string $label   Блок, з якого відкрито форму.
  * @param array  $traffic Звідки прийшли: UTM-мітки, перехід, перша сторінка.
+ * @param string $place   Тип приміщення.
  * @return void
  */
-function scala_notify_lead( string $name, string $phone, string $need, string $note, string $src, string $label = '', array $traffic = array() ): void {
+function scala_notify_lead( string $name, string $phone, string $need, string $note, string $src, string $label = '', array $traffic = array(), string $place = '' ): void {
 	$to = (string) scala_opt( 'notify_email', '' );
 
 	if ( ! $to ) {
@@ -178,6 +190,7 @@ function scala_notify_lead( string $name, string $phone, string $need, string $n
 		__( 'Імʼя:', 'scala' ) . ' ' . ( $name ?: '—' ),
 		__( 'Телефон:', 'scala' ) . ' ' . $phone,
 		__( 'Потрібно:', 'scala' ) . ' ' . ( $need ?: '—' ),
+		__( 'Приміщення:', 'scala' ) . ' ' . ( $place ?: '—' ),
 		__( 'Коментар:', 'scala' ) . ' ' . ( $note ?: '—' ),
 		__( 'Звідки:', 'scala' ) . ' ' . ( $label ?: '—' ),
 		__( 'Сторінка:', 'scala' ) . ' ' . ( $src ?: '—' ),

@@ -60,6 +60,7 @@ function scala_maybe_upgrade(): void {
 	}
 
 	scala_fill_seo_fields();
+	scala_move_commercial_need();
 
 	update_option( SCALA_APPLIED, SCALA_VERSION, false );
 	delete_transient( 'scala_upgrading' );
@@ -235,4 +236,42 @@ function scala_ensure_blog_page(): void {
 	}
 
 	update_option( 'page_for_posts', (int) $page_id );
+}
+
+/**
+ * «Комерційний простір» — тепер тип приміщення, а не те, що оформлюють.
+ *
+ * У формі з'явилось окреме поле «Тип приміщення». Якби варіант лишився
+ * і в «Що потрібно оформити», людина бачила б його двічі. Прибираємо
+ * лише цей рядок і лише якщо назва збігається дослівно: решту списку,
+ * який могли редагувати в адмінці, не чіпаємо.
+ *
+ * @return void
+ */
+function scala_move_commercial_need(): void {
+	$options = get_option( SCALA_OPT_KEY, array() );
+
+	if ( ! is_array( $options ) || empty( $options['needs'] ) || ! is_array( $options['needs'] ) ) {
+		return;
+	}
+
+	$kept = array_values(
+		array_filter(
+			$options['needs'],
+			static function ( $row ): bool {
+				return ! ( is_array( $row ) && 'Комерційний простір' === trim( (string) ( $row['text'] ?? '' ) ) );
+			}
+		)
+	);
+
+	if ( count( $kept ) === count( $options['needs'] ) ) {
+		return;
+	}
+
+	$options['needs'] = $kept;
+
+	// Повз фільтр очищення форми — пояснення в scala_telegram_action_use_chat().
+	remove_filter( 'sanitize_option_' . SCALA_OPT_KEY, 'scala_sanitize_options' );
+	update_option( SCALA_OPT_KEY, $options );
+	add_filter( 'sanitize_option_' . SCALA_OPT_KEY, 'scala_sanitize_options' );
 }

@@ -18,6 +18,16 @@ defined( 'ABSPATH' ) || exit;
 $scala_prefix = isset( $args['prefix'] ) ? sanitize_key( (string) $args['prefix'] ) : 'lead';
 $scala_source = isset( $args['source'] ) ? (string) $args['source'] : '';
 $scala_needs  = scala_rows( 'needs' );
+$scala_places = scala_rows( 'places' );
+
+// Поле нове, у збережених налаштуваннях його ще немає.
+if ( ! $scala_places ) {
+	$scala_places = array(
+		array( 'text' => __( 'Квартира', 'scala' ) ),
+		array( 'text' => __( 'Будинок', 'scala' ) ),
+		array( 'text' => __( 'Комерційне приміщення', 'scala' ) ),
+	);
+}
 
 $scala_id = static fn( string $name ): string => $scala_prefix . '-' . $name;
 ?>
@@ -30,17 +40,42 @@ $scala_id = static fn( string $name ): string => $scala_prefix . '-' . $name;
 	<input id="<?php echo esc_attr( $scala_id( 'phone' ) ); ?>" name="phone" type="tel" required autocomplete="tel" inputmode="tel"
 		placeholder="+38 (0__) ___-__-__" />
 
+	<?php
+	/*
+	 * Не випадаючий список, а позначки: люди часто замовляють кілька
+	 * речей одразу — тюль і портьєри, римські на кухню й рулонні в
+	 * спальню, — а список дозволяв обрати лише одне.
+	 */
+	?>
 	<?php if ( $scala_needs ) : ?>
-		<label class="visually-hidden" for="<?php echo esc_attr( $scala_id( 'need' ) ); ?>"><?php esc_html_e( 'Що потрібно оформити', 'scala' ); ?></label>
-		<select id="<?php echo esc_attr( $scala_id( 'need' ) ); ?>" name="need">
-			<option value=""><?php esc_html_e( 'Що потрібно оформити', 'scala' ); ?></option>
-			<?php foreach ( $scala_needs as $scala_need ) : ?>
-				<?php if ( ! empty( $scala_need['text'] ) ) : ?>
-					<option><?php echo esc_html( $scala_need['text'] ); ?></option>
+		<fieldset class="form__group">
+			<legend class="form__legend"><?php esc_html_e( 'Що потрібно оформити', 'scala' ); ?> <span><?php esc_html_e( 'можна кілька', 'scala' ); ?></span></legend>
+			<div class="form__choices">
+				<?php foreach ( $scala_needs as $scala_need ) : ?>
+					<?php if ( ! empty( $scala_need['text'] ) ) : ?>
+						<label class="form__choice">
+							<input type="checkbox" name="need[]" value="<?php echo esc_attr( $scala_need['text'] ); ?>" />
+							<span><?php echo esc_html( $scala_need['text'] ); ?></span>
+						</label>
+					<?php endif; ?>
+				<?php endforeach; ?>
+			</div>
+		</fieldset>
+	<?php endif; ?>
+
+	<fieldset class="form__group">
+		<legend class="form__legend"><?php esc_html_e( 'Тип приміщення', 'scala' ); ?></legend>
+		<div class="form__choices">
+			<?php foreach ( $scala_places as $scala_place ) : ?>
+				<?php if ( ! empty( $scala_place['text'] ) ) : ?>
+					<label class="form__choice">
+						<input type="radio" name="place" value="<?php echo esc_attr( $scala_place['text'] ); ?>" />
+						<span><?php echo esc_html( $scala_place['text'] ); ?></span>
+					</label>
 				<?php endif; ?>
 			<?php endforeach; ?>
-		</select>
-	<?php endif; ?>
+		</div>
+	</fieldset>
 
 	<label class="visually-hidden" for="<?php echo esc_attr( $scala_id( 'note' ) ); ?>"><?php esc_html_e( 'Коментар', 'scala' ); ?></label>
 	<textarea id="<?php echo esc_attr( $scala_id( 'note' ) ); ?>" name="note" rows="2"

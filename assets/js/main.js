@@ -49,15 +49,25 @@
       }
       if (room) room.style.transform = 'scale(' + (1.1 - e * 0.1) + ')';
 
+      /*
+       * Невидимий шар мусить і не заважати. Текст першого екрана лежить
+       * поверх усього на всю висоту кадру: прозорий, він однаково
+       * перехоплював кожне натискання, і посилання та кнопки під
+       * шторою не натискались. visibility прибирає шар і з-під пальця,
+       * і з обходу клавішею Tab.
+       */
       if (text) {
-        text.style.opacity   = String(Math.max(0, 1 - p * 2.8));
-        text.style.transform = 'translateY(' + (-p * 36) + 'px)';
+        var textOpacity = Math.max(0, 1 - p * 2.8);
+        text.style.opacity    = String(textOpacity);
+        text.style.transform  = 'translateY(' + (-p * 36) + 'px)';
+        text.style.visibility = textOpacity > 0 ? '' : 'hidden';
       }
 
       if (reveal) {
         var t = Math.max(0, Math.min(1, (p - 0.5) / 0.3));
-        reveal.style.opacity   = String(t);
-        reveal.style.transform = 'translateY(' + (1 - t) * 28 + 'px)';
+        reveal.style.opacity    = String(t);
+        reveal.style.transform  = 'translateY(' + (1 - t) * 28 + 'px)';
+        reveal.style.visibility = t > 0 ? 'visible' : 'hidden';
       }
 
       if (header) {
@@ -77,6 +87,49 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     paint();
+  }
+
+  /* ------------------------------------------------------------------------
+     1b. Нижня панель на телефоні — завжди біля нижнього краю
+     ------------------------------------------------------------------------ */
+  /*
+   * Safari на iPhone ховає свою нижню панель, коли гортаєш униз. Видима
+   * область стає вищою, а панель із position: fixed лишається там, де
+   * закінчувалась стара, — і висить над краєм, а під нею видно сторінку.
+   * Рахуємо цей зазор через visualViewport і дотискаємо панель донизу.
+   * Де зазору немає (Android, комп'ютер), зсув нульовий.
+   */
+  function initMobileBar() {
+    var bar = $('.mobile-bar');
+    var vv  = window.visualViewport;
+    if (!bar || !vv) return;
+
+    var raf = null;
+
+    function place() {
+      raf = null;
+      bar.style.transform = '';
+
+      if (getComputedStyle(bar).display === 'none') return;
+
+      var gap = vv.offsetTop + vv.height - bar.getBoundingClientRect().bottom;
+
+      // Лише зазор знизу завбільшки з панель браузера. Від'ємний — це
+      // відкрита клавіатура або збільшення жестом: тоді не чіпаємо.
+      if (gap > 0.5 && gap < 200) {
+        bar.style.transform = 'translate3d(0,' + gap + 'px,0)';
+      }
+    }
+
+    function schedule() {
+      if (!raf) raf = requestAnimationFrame(place);
+    }
+
+    vv.addEventListener('resize', schedule);
+    vv.addEventListener('scroll', schedule);
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    place();
   }
 
   /* ------------------------------------------------------------------------
@@ -1011,6 +1064,7 @@
   function init() {
     initTraffic();
     initHero();
+    initMobileBar();
     initCursor();
     initReveal();
     initParallax();

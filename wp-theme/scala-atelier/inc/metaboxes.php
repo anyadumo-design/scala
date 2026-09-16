@@ -328,6 +328,7 @@ function scala_render_lead_box( $post ): void {
 		__( 'Імʼя', 'scala' )      => scala_meta( $post->ID, 'name', '—' ),
 		__( 'Телефон', 'scala' )   => scala_meta( $post->ID, 'phone', '—' ),
 		__( 'Потрібно', 'scala' )  => scala_meta( $post->ID, 'need', '—' ),
+		__( 'Приміщення', 'scala' ) => scala_meta( $post->ID, 'place', '—' ),
 		__( 'Коментар', 'scala' )  => scala_meta( $post->ID, 'note', '—' ),
 		__( 'Звідки', 'scala' )    => scala_meta( $post->ID, 'source_label', '—' ),
 		__( 'Сторінка', 'scala' )  => scala_meta( $post->ID, 'source', '—' ),
@@ -403,6 +404,12 @@ function scala_lead_column_content( string $column, int $post_id ): void {
 
 	if ( 'scala_need' === $column ) {
 		echo esc_html( (string) scala_meta( $post_id, 'need', '—' ) );
+
+		$place = (string) scala_meta( $post_id, 'place', '' );
+
+		if ( $place ) {
+			echo '<br /><span style="color:#646970">' . esc_html( $place ) . '</span>';
+		}
 	}
 
 	if ( 'scala_from' === $column ) {
