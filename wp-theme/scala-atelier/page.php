@@ -38,34 +38,20 @@ while ( have_posts() ) :
 	/*
 	 * Сторінки кімнат вели на види штор, але не одна на одну й не в
 	 * журнал. Людина, яка читає про спальню, наступним питанням має
-	 * кухню або карниз — цих переходів тут не було.
+	 * кухню або карниз. Лише для сторінок із заготовок: на звичайній
+	 * службовій сторінці путівник ні до чого.
 	 */
-	$scala_rooms   = function_exists( 'scala_room_links' ) ? scala_room_links( (int) get_the_ID() ) : array();
-	$scala_seeded  = function_exists( 'scala_is_seeded_guide' ) && scala_is_seeded_guide( (int) get_the_ID() );
-	$scala_cornice = $scala_seeded && function_exists( 'scala_cornice_links' ) ? scala_cornice_links() : array();
+	if ( function_exists( 'scala_is_seeded_guide' ) && scala_is_seeded_guide( (int) get_the_ID() ) ) {
+		get_template_part(
+			'template-parts/navigator',
+			null,
+			array(
+				'exclude'     => (int) get_the_ID(),
+				'rooms_label' => __( 'Інші кімнати', 'scala' ),
+			)
+		);
+	}
 	?>
-
-	<?php if ( $scala_seeded && $scala_rooms ) : ?>
-		<section class="section--m44">
-			<p class="lead" style="max-width:760px">
-				<?php esc_html_e( 'Інші кімнати:', 'scala' ); ?>
-				<?php foreach ( $scala_rooms as $scala_i => $scala_room ) : ?>
-					<?php echo $scala_i ? ' · ' : ' '; ?>
-					<a href="<?php echo esc_url( $scala_room['url'] ); ?>"><?php echo esc_html( $scala_room['title'] ); ?></a>
-				<?php endforeach; ?>
-			</p>
-
-			<?php if ( $scala_cornice ) : ?>
-				<p class="lead" style="max-width:760px; margin-top:8px">
-					<?php esc_html_e( 'Про карнизи:', 'scala' ); ?>
-					<?php foreach ( $scala_cornice as $scala_i => $scala_art ) : ?>
-						<?php echo $scala_i ? ' · ' : ' '; ?>
-						<a href="<?php echo esc_url( $scala_art['url'] ); ?>"><?php echo esc_html( $scala_art['title'] ); ?></a>
-					<?php endforeach; ?>
-				</p>
-			<?php endif; ?>
-		</section>
-	<?php endif; ?>
 
 	<?php
 	// Звичайні сторінки досі закінчувались текстом і нічим більше.

@@ -81,19 +81,11 @@ while ( have_posts() ) :
 	}
 	?>
 
-	<?php $scala_rooms = function_exists( 'scala_room_links' ) ? scala_room_links() : array(); ?>
-
-	<?php if ( $scala_rooms && 'post' === get_post_type() ) : ?>
-		<section class="section--m44">
-			<p class="lead" style="max-width:760px">
-				<?php esc_html_e( 'Штори за кімнатами:', 'scala' ); ?>
-				<?php foreach ( $scala_rooms as $scala_i => $scala_room ) : ?>
-					<?php echo $scala_i ? ' · ' : ' '; ?>
-					<a href="<?php echo esc_url( $scala_room['url'] ); ?>"><?php echo esc_html( $scala_room['title'] ); ?></a>
-				<?php endforeach; ?>
-			</p>
-		</section>
-	<?php endif; ?>
+	<?php
+	if ( 'post' === get_post_type() ) {
+		get_template_part( 'template-parts/navigator', null, array( 'exclude' => (int) get_the_ID() ) );
+	}
+	?>
 
 	<?php
 	/*

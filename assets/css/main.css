@@ -1600,3 +1600,78 @@ button.shots__item:hover img { transform: scale(1.04); }
   .shotbox__nav--next { right: calc(50% - 62px); top: auto; bottom: 46px; transform: none; }
   .shotbox__count { bottom: 106px; }
 }
+
+/* --------------------------------------------------------------------------
+   26. Путівник: куди піти далі
+   -------------------------------------------------------------------------- */
+/* Колись це були сірі рядки тексту в пів ширини — «За кімнатами:
+   Спальня · Кухня · …». Тепер окрема панель на всю ширину: тепла
+   підкладка відділяє її від смуги із заявкою, що йде одразу за нею,
+   а колонки з підписами читаються як навігація, а не як примітка.
+
+   Ширину колонок рахує сама сітка: кімнати займають дві частки,
+   решта по одній. Якщо якоїсь колонки немає, сітка не ламається. */
+.guide-nav { --guide-line: rgba(11, 11, 12, .1); }
+
+.guide-nav__grid {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+  background: var(--c-ph-card); padding: 36px 40px 40px;
+}
+.guide-nav__col { padding: 0 34px; border-left: 1px solid var(--guide-line); }
+.guide-nav__col:first-child { padding-left: 0; border-left: none; }
+.guide-nav__col:last-child  { padding-right: 0; }
+.guide-nav__col--rooms { grid-column: span 2; }
+
+.guide-nav__list { list-style: none; margin: 16px 0 0; padding: 0; }
+.guide-nav__list li { break-inside: avoid; }
+.guide-nav__col--rooms .guide-nav__list { columns: 2; column-gap: 34px; }
+
+.guide-nav__list a {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 13px 0; border-bottom: 1px solid var(--guide-line);
+  font-size: 17px; line-height: 1.3; font-weight: 500; letter-spacing: -.012em;
+  color: var(--c-ink);
+  transition: color .25s ease, border-color .25s ease;
+}
+.guide-nav__list a:hover { color: var(--c-accent); border-bottom-color: var(--c-accent); }
+
+/* Одне посилання в колонці — головне: порівняння всіх видів. */
+.guide-nav__col--feature .guide-nav__list a {
+  align-items: flex-end; padding: 6px 0 18px;
+  font-size: clamp(19px, 1.65vw, 23px); line-height: 1.22; font-weight: 600;
+  letter-spacing: -.025em; text-wrap: balance;
+}
+
+.guide-nav__arrow { flex: none; color: var(--c-accent); font-weight: 400; }
+
+/* Там, де є курсор, стрілка зʼявляється на наведенні. На телефоні
+   наведення немає, тож стрілка стоїть завжди — вона й підказує, що
+   рядок натискається. */
+@media (hover: hover) and (pointer: fine) {
+  .guide-nav__arrow { opacity: 0; transform: translateX(-6px); transition: opacity .25s ease, transform .25s ease; }
+  .guide-nav__list a:hover .guide-nav__arrow { opacity: 1; transform: none; }
+}
+
+@media (max-width: 1100px) {
+  .guide-nav__grid { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: minmax(0, 1fr); padding: 30px 32px 34px; }
+  /* Без ліній між колонками: у кожного рядка вже є своя, і дві лінії
+     поспіль, через проміжок, читались як помилка верстки. */
+  .guide-nav__col,
+  .guide-nav__col:first-child,
+  .guide-nav__col:last-child { grid-column: auto; padding: 0; border-left: none; }
+  .guide-nav__col + .guide-nav__col { margin-top: 34px; }
+  /* Рядами, а не колонками: сім кімнат у три колонки лишали «Балкон»
+     самого в останній. Рядами хвіст лишається в кінці рядка, як у тексті. */
+  .guide-nav__col--rooms .guide-nav__list { columns: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 28px; }
+  .guide-nav__col--list .guide-nav__list { columns: 2; column-gap: 34px; }
+}
+
+@media (max-width: 760px) {
+  /* Панель до країв екрана: у полях по 18px вона виглядала б карткою,
+     загубленою посеред сторінки. */
+  .guide-nav { padding-left: 0; padding-right: 0; }
+  .guide-nav__grid { padding: 28px var(--pad-x-mob) 30px; }
+  .guide-nav__col--rooms .guide-nav__list { display: block; columns: 2; column-gap: 20px; }
+  .guide-nav__col--list .guide-nav__list { columns: 1; }
+  .guide-nav__list a { font-size: 16.5px; }
+}

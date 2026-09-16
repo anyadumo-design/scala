@@ -214,45 +214,10 @@ while ( have_posts() ) :
 					</a>
 				<?php endforeach; ?>
 			</div>
-
-			<?php $scala_guide = scala_guide_link(); ?>
-
-			<?php if ( $scala_guide ) : ?>
-				<p class="lead" style="margin-top:22px">
-					<a href="<?php echo esc_url( $scala_guide['url'] ); ?>"><?php echo esc_html( $scala_guide['title'] ); ?></a>
-				</p>
-			<?php endif; ?>
-
-			<?php
-			// Звʼязок був односторонній: кімнати вели сюди, а звідси —
-			// нікуди. Людина, яка прийшла за конструкцією, часто
-			// вирішує все одно «в яку кімнату».
-			$scala_rooms = scala_room_links();
-			?>
-
-			<?php if ( $scala_rooms ) : ?>
-				<p class="lead" style="margin-top:8px">
-					<?php esc_html_e( 'За кімнатами:', 'scala' ); ?>
-					<?php foreach ( $scala_rooms as $scala_i => $scala_room ) : ?>
-						<?php echo $scala_i ? ' · ' : ' '; ?>
-						<a href="<?php echo esc_url( $scala_room['url'] ); ?>"><?php echo esc_html( $scala_room['title'] ); ?></a>
-					<?php endforeach; ?>
-				</p>
-			<?php endif; ?>
-
-			<?php $scala_cornice = function_exists( 'scala_cornice_links' ) ? scala_cornice_links() : array(); ?>
-
-			<?php if ( $scala_cornice ) : ?>
-				<p class="lead" style="margin-top:8px">
-					<?php esc_html_e( 'Про карнизи:', 'scala' ); ?>
-					<?php foreach ( $scala_cornice as $scala_i => $scala_art ) : ?>
-						<?php echo $scala_i ? ' · ' : ' '; ?>
-						<a href="<?php echo esc_url( $scala_art['url'] ); ?>"><?php echo esc_html( $scala_art['title'] ); ?></a>
-					<?php endforeach; ?>
-				</p>
-			<?php endif; ?>
 		</section>
 	<?php endif; ?>
+
+	<?php get_template_part( 'template-parts/navigator', null, array( 'exclude' => $scala_id ) ); ?>
 
 	<?php
 	get_template_part(

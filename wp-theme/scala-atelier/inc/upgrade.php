@@ -53,6 +53,12 @@ function scala_maybe_upgrade(): void {
 
 	scala_ensure_blog_page();
 	scala_sync_guides();
+
+	// До заповнення SEO-полів: опис сторінки виду штор береться зі вступу.
+	if ( function_exists( 'scala_apply_copy_fixes' ) ) {
+		scala_apply_copy_fixes();
+	}
+
 	scala_fill_seo_fields();
 
 	update_option( SCALA_APPLIED, SCALA_VERSION, false );

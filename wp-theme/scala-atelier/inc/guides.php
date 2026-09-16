@@ -347,7 +347,12 @@ function scala_room_links( int $exclude = 0 ): array {
 		$cache = array();
 
 		foreach ( scala_guide_seed_data() as $guide ) {
-			if ( 'page' !== ( $guide['type'] ?? 'post' ) ) {
+			/*
+			 * Кімната позначена в заготовці явно. Раніше сюди потрапляла
+			 * будь-яка сторінка із заготовок — і «Про бренд» опинилась у
+			 * переліку кімнат поруч зі спальнею й кухнею.
+			 */
+			if ( empty( $guide['room'] ) ) {
 				continue;
 			}
 
