@@ -146,16 +146,29 @@
       });
     });
 
-    var io = new IntersectionObserver(function (entries) {
+    function show(entries, observer) {
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
         en.target.classList.add('is-in');
-        io.unobserve(en.target);
+        observer.unobserve(en.target);
         setTimeout(function () { en.target.classList.add('is-done'); }, 1600);
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    }
 
-    items.forEach(function (el) { io.observe(el); });
+    var io = new IntersectionObserver(show, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+    /*
+     * Високий блок — текст статті на кілька екранів — окремо. Поріг 0.12
+     * означає «видно 12% блоку», а в статті на 7000 px на телефоні це 850 px:
+     * більше, ніж уміщує екран. Такий блок не проявлявся ніколи, і текст
+     * лишався прозорим, хоч до кінця догортай. Для нього — проявити, щойно
+     * верх зайшов на чверть екрана.
+     */
+    var ioTall = new IntersectionObserver(show, { threshold: 0, rootMargin: '0px 0px -25% 0px' });
+
+    items.forEach(function (el) {
+      (el.offsetHeight > window.innerHeight * 0.5 ? ioTall : io).observe(el);
+    });
   }
 
   /* ------------------------------------------------------------------------
