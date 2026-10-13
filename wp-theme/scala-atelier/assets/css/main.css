@@ -678,6 +678,10 @@ summary::-webkit-details-marker { display: none; }
   margin-top: 16px; padding-bottom: 4px;
   font-size: 14px; font-weight: 600; letter-spacing: .02em;
 }
+/* Підпис-посилання: стрілка показує, що за ним сторінка проєкту. */
+.proj__cap--link { display: inline-block; color: var(--c-ink); }
+.proj__cap--link::after { content: " →"; color: var(--c-accent); }
+.proj__cap--link:hover { color: var(--c-accent); }
 
 /* Банер усередині секції проєктів. Секція повноширинна (--flush),
    тож контейнер і поля повертаємо тут. Відступ мінімальний: банер

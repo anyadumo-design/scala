@@ -58,6 +58,24 @@ function scala_expand_guide_links( string $content ): string {
 						? (string) get_permalink( $page )
 						: '';
 				}
+			} elseif ( 'post' === $kind ) {
+				/*
+				 * Стаття журналу. Цієї гілки не було з вересня: мітка
+				 * {{post:…}} мовчки перетворювалась на простий текст, і
+				 * одинадцять посилань на статті в текстах так і не
+				 * зʼявились.
+				 */
+				$found = get_posts(
+					array(
+						'name'           => $key,
+						'post_type'      => 'post',
+						'post_status'    => 'publish',
+						'posts_per_page' => 1,
+						'fields'         => 'ids',
+					)
+				);
+
+				$url = $found ? (string) get_permalink( $found[0] ) : '';
 			}
 
 			return $url ? sprintf( '<a href="%s">%s</a>', esc_url( $url ), $text ) : $text;

@@ -41,33 +41,82 @@ while ( have_posts() ) :
 		<?php endif; ?>
 	</section>
 
-	<?php if ( has_post_thumbnail() ) : ?>
-		<section class="section--m44">
-			<div class="about__hero">
-				<?php
-				/*
-				 * Опис alt: у завантажених файлах він порожній, а картинка
-				 * без опису — це і втрачений сигнал для пошуку, і порожнє
-				 * місце для того, хто читає екранним зчитувачем.
-				 */
-				the_post_thumbnail(
-					'scala-lg',
-					array(
-						'sizes' => '100vw',
-						'alt'   => get_the_title(),
-					)
-				);
-				?>
-			</div>
-		</section>
-	<?php endif; ?>
+	<?php
+	/*
+	 * Проєкт із вертикальним відео: відео поруч із описом, як у блоці
+	 * «під ключ» на головній. Раніше на сторінці проєкту стояли лише
+	 * назва й обкладинка, а саме відео — головний доказ роботи — було
+	 * тільки в стрічці на головній.
+	 */
+	$scala_video_id  = 'scala_project' === get_post_type() ? (int) scala_meta( (int) get_the_ID(), 'video', 0 ) : 0;
+	$scala_video_url = $scala_video_id ? (string) wp_get_attachment_url( $scala_video_id ) : '';
+	?>
 
-	<?php if ( get_the_content() ) : ?>
-		<section class="section--m88">
-			<div class="about__body" style="max-width:760px">
-				<?php the_content(); ?>
+	<?php if ( $scala_video_url ) : ?>
+		<section class="section--m44">
+			<div class="vid__grid">
+				<div class="vid__media">
+					<div class="vid__frame">
+						<video
+							class="vid__player"
+							data-scala-video
+							src="<?php echo esc_url( $scala_video_url ); ?>"
+							<?php echo has_post_thumbnail() ? 'poster="' . esc_url( (string) get_the_post_thumbnail_url( null, 'scala-md' ) ) . '"' : ''; ?>
+							muted
+							loop
+							playsinline
+							preload="none"
+							aria-label="<?php echo esc_attr( get_the_title() ); ?>"></video>
+
+						<button type="button" class="vid__play" data-scala-video-play>
+							<span class="vid__play-icon" aria-hidden="true">&#9654;</span>
+							<span class="visually-hidden"><?php esc_html_e( 'Відтворити відео', 'scala' ); ?></span>
+						</button>
+
+						<button type="button" class="vid__sound" data-scala-video-sound aria-pressed="false">
+							<?php esc_html_e( 'Увімкнути звук', 'scala' ); ?>
+						</button>
+					</div>
+				</div>
+
+				<?php if ( get_the_content() ) : ?>
+					<div class="vid__side">
+						<div class="about__body" style="max-width:560px">
+							<?php the_content(); ?>
+						</div>
+					</div>
+				<?php endif; ?>
 			</div>
 		</section>
+	<?php else : ?>
+		<?php if ( has_post_thumbnail() ) : ?>
+			<section class="section--m44">
+				<div class="about__hero">
+					<?php
+					/*
+					 * Опис alt: у завантажених файлах він порожній, а картинка
+					 * без опису — це і втрачений сигнал для пошуку, і порожнє
+					 * місце для того, хто читає екранним зчитувачем.
+					 */
+					the_post_thumbnail(
+						'scala-lg',
+						array(
+							'sizes' => '100vw',
+							'alt'   => get_the_title(),
+						)
+					);
+					?>
+				</div>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( get_the_content() ) : ?>
+			<section class="section--m88">
+				<div class="about__body" style="max-width:760px">
+					<?php the_content(); ?>
+				</div>
+			</section>
+		<?php endif; ?>
 	<?php endif; ?>
 
 	<?php

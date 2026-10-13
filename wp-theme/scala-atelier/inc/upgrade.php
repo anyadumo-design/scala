@@ -59,6 +59,11 @@ function scala_maybe_upgrade(): void {
 		scala_apply_copy_fixes();
 	}
 
+	// До SEO-полів: опис для пошуку проєкту береться з його тексту.
+	if ( function_exists( 'scala_fill_project_copy' ) ) {
+		scala_fill_project_copy();
+	}
+
 	scala_fill_seo_fields();
 	scala_move_commercial_need();
 

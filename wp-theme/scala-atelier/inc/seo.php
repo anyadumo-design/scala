@@ -315,11 +315,18 @@ function scala_is_thin( int $post_id ): bool {
 		return false;
 	}
 
-	$text = (string) scala_meta( $post_id, 'short', '' );
-	$text = $text ?: (string) get_post_field( 'post_excerpt', $post_id );
-	$text = $text ?: (string) get_post_field( 'post_content', $post_id );
+	/*
+	 * Беремо найдовший із трьох. Раніше брався перший непорожній: проєкт
+	 * із коротким підписом на кшталт «Спальня» і повним описом нижче
+	 * вважався порожнім і ховався від пошуку.
+	 */
+	$longest = 0;
 
-	return mb_strlen( trim( wp_strip_all_tags( $text ) ) ) < 80;
+	foreach ( array( (string) scala_meta( $post_id, 'short', '' ), (string) get_post_field( 'post_excerpt', $post_id ), (string) get_post_field( 'post_content', $post_id ) ) as $text ) {
+		$longest = max( $longest, mb_strlen( trim( wp_strip_all_tags( $text ) ) ) );
+	}
+
+	return $longest < 80;
 }
 
 /**
@@ -1195,6 +1202,56 @@ function scala_type_json_ld(): void {
 	);
 }
 add_action( 'wp_head', 'scala_type_json_ld', 6 );
+
+/**
+ * Відео реалізованого проєкту для пошуковика.
+ *
+ * Google показує ролики в пошуку відео, лише коли розуміє, що це
+ * відео, про що воно і як виглядає його обкладинка. Тільки для
+ * сторінок, яких немає в списку прихованих: порожній проєкт у пошук не
+ * потрапляє, то й розмітка йому ні до чого.
+ *
+ * @return void
+ */
+function scala_project_video_json_ld(): void {
+	if ( ! is_singular( 'scala_project' ) ) {
+		return;
+	}
+
+	$post_id  = (int) get_the_ID();
+	$video_id = (int) scala_meta( $post_id, 'video', 0 );
+	$url      = $video_id ? (string) wp_get_attachment_url( $video_id ) : '';
+	$thumb    = (string) get_the_post_thumbnail_url( $post_id, 'scala-lg' );
+
+	// Без обкладинки Google розмітку відео не приймає.
+	if ( ! $url || ! $thumb || ( function_exists( 'scala_is_thin' ) && scala_is_thin( $post_id ) ) ) {
+		return;
+	}
+
+	$description = function_exists( 'scala_description_for' ) ? scala_description_for( $post_id ) : '';
+
+	$video = array(
+		'@context'     => 'https://schema.org',
+		'@type'        => 'VideoObject',
+		'name'         => wp_strip_all_tags( get_the_title( $post_id ) ),
+		'description'  => $description ? $description : wp_strip_all_tags( get_the_title( $post_id ) ),
+		'thumbnailUrl' => array( $thumb ),
+		'uploadDate'   => get_the_date( 'c', $post_id ),
+		'contentUrl'   => $url,
+	);
+
+	$meta = wp_get_attachment_metadata( $video_id );
+
+	if ( is_array( $meta ) && ! empty( $meta['length'] ) ) {
+		$video['duration'] = 'PT' . (int) $meta['length'] . 'S';
+	}
+
+	printf(
+		'<script type="application/ld+json">%s</script>' . "\n",
+		wp_json_encode( $video, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES )
+	);
+}
+add_action( 'wp_head', 'scala_project_video_json_ld', 7 );
 
 /**
  * Тонку сторінку ховаємо від пошуку.

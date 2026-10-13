@@ -93,7 +93,21 @@ $scala_projects = array_merge( $scala_with_video, $scala_still );
 						?>
 					<?php endif; ?>
 				</div>
-				<div class="proj__cap"><?php echo esc_html( get_the_title( $scala_project ) ); ?></div>
+				<?php
+				/*
+				 * Підпис веде на сторінку проєкту, якщо там є що читати.
+				 * Порожні сторінки сховані від пошуку, і посилання на них
+				 * нікому нічого не дасть.
+				 */
+				$scala_has_page = function_exists( 'scala_is_thin' ) && ! scala_is_thin( (int) $scala_project->ID );
+				?>
+				<?php if ( $scala_has_page ) : ?>
+					<a class="proj__cap proj__cap--link" href="<?php echo esc_url( (string) get_permalink( $scala_project ) ); ?>">
+						<?php echo esc_html( get_the_title( $scala_project ) ); ?>
+					</a>
+				<?php else : ?>
+					<div class="proj__cap"><?php echo esc_html( get_the_title( $scala_project ) ); ?></div>
+				<?php endif; ?>
 			</div>
 		<?php endforeach; ?>
 	</div>
