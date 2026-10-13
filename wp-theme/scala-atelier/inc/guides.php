@@ -176,6 +176,28 @@ function scala_insert_missing_guides(): array {
 			)
 		);
 
+		/*
+		 * Матеріал міг жити під старою адресою — як стаття про тканини,
+		 * що зі старого сайту приїхала зі слагом novost-3. Заготовка
+		 * називає старий слаг, і запис переїжджає на новий. WordPress
+		 * сам запамʼятовує стару адресу й веде з неї на нову.
+		 */
+		$renamed = false;
+
+		if ( ! $exists && ! empty( $guide['old_slug'] ) ) {
+			$exists = get_posts(
+				array(
+					'name'             => sanitize_title( (string) $guide['old_slug'] ),
+					'post_type'        => array( 'post', 'page' ),
+					'post_status'      => array( 'publish', 'draft', 'pending', 'private', 'future' ),
+					'posts_per_page'   => 1,
+					'fields'           => 'ids',
+					'suppress_filters' => false,
+				)
+			);
+			$renamed = (bool) $exists;
+		}
+
 		if ( $exists ) {
 			$post_id = (int) $exists[0];
 			$stored  = (string) get_post_meta( $post_id, '_scala_guide_hash', true );
@@ -213,6 +235,12 @@ function scala_insert_missing_guides(): array {
 			if ( md5( $content ) !== $source || $legacy ) {
 				$fields['post_content'] = $content;
 				$fields['post_excerpt'] = (string) ( $guide['excerpt'] ?? '' );
+			}
+
+			// Переїзд на нову адресу — разом із заголовком із заготовки.
+			if ( $renamed ) {
+				$fields['post_name']  = $slug;
+				$fields['post_title'] = $title;
 			}
 
 			// Тип могли створити не той — виправляємо, слаг лишається.

@@ -37,6 +37,9 @@ function scala_redirect_map(): array {
 		'sample-page'                     => '',
 		'golovna'                         => '', // стара головна; нова — holovna
 
+		// Стаття про тканини мала технічну адресу «Новина 3».
+		'novost-3'                        => 'yak-vybraty-tkanynu-dlya-shtor',
+
 		/* ---- Комерційні сторінки, які лежали в блозі ---------------- */
 		'avstrijski-shtory' => 'vydy-shtor/avstrijski-shtory',
 		'yaponski-shtory'   => 'vydy-shtor/yaponski-paneli',
@@ -60,7 +63,7 @@ function scala_redirect_map(): array {
 		'ru/elektrokarnyzy-sovremennoe-reshenye-dlya-upravlenyya-shtoramy'
 			=> 'elektrokarnyzy-suchasne-rishennya-dlya-keruvannya-shtoramy',
 
-		'ru/kak-vybrat-ydealnye-tkany-dlya-shtor' => 'novost-3',
+		'ru/kak-vybrat-ydealnye-tkany-dlya-shtor' => 'yak-vybraty-tkanynu-dlya-shtor',
 		'ru/kak-pravylno-vybrat-karnyz'           => 'yak-pravilno-vibrati-karniz',
 		'ru/novost-4'                             => 'yaki-vikonni-sistemi-ye-na-rinku',
 
@@ -81,7 +84,7 @@ function scala_redirect_map(): array {
 		'kontakty-2'                       => 'kontakty',
 		'avstryjskye-shtory'               => 'vydy-shtor/avstrijski-shtory',
 		'rulonnye-shtory'                  => 'vydy-shtor/rulonni-shtory',
-		'kak-vybrat-ydealnye-tkany-dlya-shtor' => 'novost-3',
+		'kak-vybrat-ydealnye-tkany-dlya-shtor' => 'yak-vybraty-tkanynu-dlya-shtor',
 		'kak-pravylno-vybrat-karnyz'       => 'yak-pravilno-vibrati-karniz',
 		'novost-4'                         => 'yaki-vikonni-sistemi-ye-na-rinku',
 
